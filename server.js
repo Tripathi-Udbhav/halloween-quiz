@@ -240,6 +240,8 @@ io.on('connection', (socket) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Halloween quiz running on http://localhost:${PORT}`);
-  console.log(`Host screen: http://localhost:${PORT}/host${HOST_KEY ? '?key=' + HOST_KEY : ''}`);
+  // On Render, RENDER_EXTERNAL_URL is the public link; localhost only works on this machine
+  const base = (process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`).replace(/\/$/, '');
+  console.log(`Halloween quiz running. Player link: ${base}/`);
+  console.log(`Host screen: ${base}/host${HOST_KEY ? '?key=' + HOST_KEY : ''}`);
 });
