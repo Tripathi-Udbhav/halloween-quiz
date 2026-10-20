@@ -5,6 +5,15 @@ A live, Halloween-themed quiz. Players scan a QR code, enter their name, and ans
 - **Host screen (projector):** `https://YOUR-APP.onrender.com/host`
 - **Player link (inside the QR code):** `https://YOUR-APP.onrender.com/`
 
+## What's on screen
+
+- A purple-and-black haunted night: moon, stars, fog, graveyard, bats, a witch flying on her broomstick, zombies, zombie hands rising from the graves, and Frankenstein walking slowly while players wait to start.
+- Everything can be tapped: Frankenstein and the zombies groan, the witch cackles and does a loop, bats squeak and flee, pumpkins flare, and tapping anywhere sends off sparks.
+- An evil laugh with lightning when a player enters their name.
+- A heartbeat in the last 10 seconds.
+- Results: tombstones rise from the graves (3rd, 2nd, then 1st with a crown and fanfare), then the "Book of the Dead" leaderboard. Each phone shows a personal tombstone with a ghoulish title and one pumpkin lit per correct answer.
+- All sounds are generated in the browser, with no audio files. The 🔊 button mutes them. On the host screen, click anywhere once so the browser allows sound.
+
 ## Change the questions
 
 Edit `questions.json`. Each question looks like this:

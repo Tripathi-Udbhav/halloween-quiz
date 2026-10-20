@@ -4,18 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Quiz Host Screen</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preload" href="fonts/creepster.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="host">
   <!-- Lobby -->
   <section class="screen" id="h-lobby">
-    <h1 class="host-title spooky">🎃 Haunted Potting Quiz 🎃</h1>
+    <h1 class="host-title">🎃 <span class="drip">Haunted Potting Quiz</span> 🎃</h1>
     <p class="host-sub muted">Scan the code, enter your name, and wait for the spell to begin…</p>
     <div class="lobby-grid">
       <div>
-        <div class="qr-box" id="qr"></div>
+        <div class="qr-box"><span class="qr-bat">🦇</span><div id="qr"></div></div>
         <div class="qr-url" id="qr-url"></div>
       </div>
       <div class="souls">
@@ -30,12 +29,16 @@
       <button class="btn" id="start-btn" disabled>🕯️ Start the Quiz</button>
       <button class="btn ghost" id="clear-btn">Clear players</button>
     </div>
+    <p class="hint" style="text-align:center">Click anywhere once to wake the spooky sounds 🔊</p>
   </section>
 
   <!-- Running -->
   <section class="screen" id="h-running">
-    <h2 class="spooky" style="font-size:48px">The Clock is Ticking…</h2>
-    <div class="countdown" id="countdown">2:00</div>
+    <h2 class="spooky" style="font-size:clamp(40px,5vw,72px)">The Clock is Ticking…</h2>
+    <div class="big-ring" id="big-ring">
+      <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="46"/><circle class="prog glow" id="big-glow" cx="50" cy="50" r="46"/><circle class="prog" id="big-prog" cx="50" cy="50" r="46"/></svg>
+      <div class="t" id="countdown">2:00</div>
+    </div>
     <div class="cauldron">
       <div class="bar"><div id="finished-bar"></div></div>
       <p><span id="finished">0</span> of <span id="total">0</span> souls have sealed their answers</p>
@@ -47,17 +50,19 @@
 
   <!-- Results -->
   <section class="screen" id="h-results">
-    <h1 class="host-title spooky">🏆 The Winners Rise 🏆</h1>
-    <div class="reveal-msg spooky" id="reveal-msg"></div>
+    <h1 class="host-title drip">The Graveyard of Champions</h1>
+    <div class="reveal-msg spooky violet" id="reveal-msg"></div>
+    <div class="crystal" id="crystal"></div>
     <div class="podium">
-      <div class="place p2" id="place-2"><div class="icon">🥈</div><div class="who"></div><div class="meta"></div><div class="block">2</div></div>
-      <div class="place p1" id="place-1"><div class="icon">👑</div><div class="who"></div><div class="meta"></div><div class="block">1</div></div>
-      <div class="place p3" id="place-3"><div class="icon">🥉</div><div class="who"></div><div class="meta"></div><div class="block">3</div></div>
+      <div class="grave g2" id="place-2"><div class="stone"><div class="medal">🥈</div><div class="pos">2nd</div><div class="who"></div><div class="meta"></div><div class="ttl"></div></div></div>
+      <div class="grave g1" id="place-1"><div class="crown">👑</div><div class="stone"><div class="medal">🏆</div><div class="pos">1st</div><div class="who"></div><div class="meta"></div><div class="ttl"></div></div></div>
+      <div class="grave g3" id="place-3"><div class="stone"><div class="medal">🥉</div><div class="pos">3rd</div><div class="who"></div><div class="meta"></div><div class="ttl"></div></div></div>
     </div>
     <div class="board" id="board">
+      <h3>📜 The Book of the Dead</h3>
       <div class="scroll">
         <table>
-          <thead><tr><th>#</th><th>Name</th><th>Correct</th><th>Time</th></tr></thead>
+          <thead><tr><th>#</th><th>Name</th><th>Title</th><th>Correct</th><th>Time</th></tr></thead>
           <tbody id="board-body"></tbody>
         </table>
       </div>
@@ -77,8 +82,9 @@
   </section>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-  <script src="decor.js"></script>
+  <script src="vendor/confetti.js"></script>
+  <script src="sound.js"></script>
+  <script src="scene.js"></script>
   <script src="host.js"></script>
 </body>
 </html>

@@ -2,11 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="theme-color" content="#0d0416">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050208">
   <title>Haunted Potting Quiz</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preload" href="fonts/creepster.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,13 +13,14 @@
   <section class="screen active" id="s-join">
     <div class="card">
       <div class="big-emoji bob">🎃</div>
-      <h1 class="spooky" style="font-size:44px">Haunted Potting Quiz</h1>
+      <h1 class="drip" style="font-size:48px;line-height:1">Haunted Potting Quiz</h1>
       <p class="muted">Enter your name… if you dare.</p>
       <form id="join-form" autocomplete="off">
         <input type="text" id="name" maxlength="24" placeholder="Your name" required>
         <button class="btn full" type="submit" id="join-btn">Enter the Crypt</button>
         <p class="error" id="join-error"></p>
       </form>
+      <p class="hint">🔊 Turn your sound on for the full fright</p>
     </div>
   </section>
 
@@ -29,9 +29,12 @@
     <div class="card">
       <div class="big-emoji bob">👻</div>
       <h2 class="spooky" style="font-size:38px">Welcome, <span id="lobby-name"></span>!</h2>
-      <p>You're in. Keep your eyes on the big screen…</p>
-      <p class="muted">The quiz begins when the host says so.<br><b id="lobby-count">0</b> souls have gathered.</p>
-      <p class="muted" style="font-size:14px">⏳ You'll get <b id="lobby-time">2 minutes</b> for all questions. Most correct wins — ties go to the fastest.</p>
+      <p style="margin:10px 0 0">You're in. Keep your eyes on the big screen…</p>
+      <div class="loader"><span>🎃</span><span>💀</span><span>🦇</span></div>
+      <div><span class="souls-num" id="lobby-count">0</span></div>
+      <div class="muted" style="font-weight:800;margin-top:-4px">souls have gathered</div>
+      <p class="muted" style="font-size:14px">⏳ <b id="lobby-time">2 minutes</b> for all questions. Most correct wins — ties go to the fastest.</p>
+      <p class="hint">While you wait: tap <b>Frankenstein</b>, the <b>zombies</b>, the <b>witch</b>, the <b>bats</b> and the <b>pumpkins</b>… if you dare.</p>
     </div>
   </section>
 
@@ -39,9 +42,11 @@
   <section class="screen" id="s-quiz">
     <div class="quiz-top">
       <div class="spooky" style="font-size:24px">🎃 <span id="quiz-name"></span></div>
-      <div class="timer" id="timer">2:00</div>
+      <div class="ring" id="ring">
+        <svg viewBox="0 0 44 44"><circle class="track" cx="22" cy="22" r="19"/><circle class="prog glow" id="ring-glow" cx="22" cy="22" r="19"/><circle class="prog" id="ring-prog" cx="22" cy="22" r="19"/></svg>
+        <div class="t" id="timer">2:00</div>
+      </div>
     </div>
-    <div class="timebar"><div id="timebar"></div></div>
     <div class="card question-card">
       <div class="q-count" id="q-count">Question 1 of 5</div>
       <div class="q-text" id="q-text"></div>
@@ -54,32 +59,51 @@
   <section class="screen" id="s-done">
     <div class="card">
       <div class="big-emoji bob">⚰️</div>
-      <h2 class="spooky" style="font-size:40px" id="done-title">Answers Sealed!</h2>
+      <h2 class="spooky" style="font-size:42px" id="done-title">Answers Sealed!</h2>
       <p id="done-text">Your fate is locked in the coffin. Wait for the others…</p>
-      <p class="muted">Results will rise from the grave on the big screen.</p>
+      <div class="loader"><span>🕯️</span><span>🕯️</span><span>🕯️</span></div>
+      <p class="muted">The winners will rise from the grave on the big screen.</p>
     </div>
   </section>
 
   <!-- Result -->
   <section class="screen" id="s-result">
-    <div class="card">
-      <div class="big-emoji" id="res-emoji">🏆</div>
-      <div class="muted">Your rank</div>
-      <div class="rank-big" id="res-rank">#1</div>
-      <div class="muted" id="res-of"></div>
-      <div class="stat-row">
-        <div class="stat"><b id="res-score">0/5</b><small>correct</small></div>
-        <div class="stat"><b id="res-time">0s</b><small>time</small></div>
+    <div class="result-wrap">
+      <div class="res-title"><span class="icon" id="res-icon">👑</span><h2 class="drip" id="res-title">Supreme Ghoul</h2></div>
+      <div class="tomb-zone">
+        <div class="tomb" id="tomb">
+          <div class="crown" id="tomb-crown">👑</div>
+          <div class="lies" id="tomb-lies">HERE LIES</div>
+          <div class="nm" id="res-name"></div>
+          <div class="rk">#<span id="res-rank">1</span></div>
+          <div class="of" id="res-of"></div>
+          <div class="epitaph" id="res-epitaph"></div>
+        </div>
       </div>
-      <h3 class="spooky" style="font-size:26px">Top Ghouls</h3>
-      <div class="mini-podium" id="res-top"></div>
+      <div class="pumpkin-row" id="res-pumpkins"></div>
+      <div class="res-stats">
+        <div><b id="res-score">0/5</b><small>correct</small></div>
+        <div><b id="res-time">0s</b><small>time</small></div>
+      </div>
+      <div class="card top3">
+        <h3 class="spooky">Top Ghouls</h3>
+        <div id="res-top"></div>
+      </div>
     </div>
   </section>
 
-  <div class="flash" id="flash"><h1>TIME'S UP!</h1></div>
+  <!-- Evil laugh moment -->
+  <div class="laugh" id="laugh">
+    <div>
+      <div class="eyes"><i></i><i></i></div>
+      <h1 id="laugh-text"></h1>
+    </div>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script src="decor.js"></script>
+  <script src="vendor/confetti.js"></script>
+  <script src="sound.js"></script>
+  <script src="scene.js"></script>
   <script src="player.js"></script>
 </body>
 </html>
