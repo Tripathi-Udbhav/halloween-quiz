@@ -84,6 +84,8 @@ canvas.fx { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
 .frank { width: clamp(110px, 19vh, 200px); }
 .zombie { width: clamp(100px, 17vh, 180px); }
 .z2 { width: clamp(80px, 13vh, 140px); }
+.mummy { width: clamp(100px, 17vh, 185px); }
+.host .mummy { width: clamp(150px, 26vh, 280px); }
 .host .frank { width: clamp(160px, 28vh, 300px); }
 .host .zombie { width: clamp(140px, 24vh, 260px); }
 .host .z2 { width: clamp(110px, 18vh, 200px); }
@@ -109,11 +111,40 @@ canvas.fx { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
   80% { transform: rotate(0deg) skewX(1deg) translateY(-3px); }
 }
 
-/* tapped */
-.walker.hit .char-img { animation: jolt 0.5s ease 3; }
-.frank.hit .char-img { filter: drop-shadow(0 0 22px rgba(140, 255, 90, 0.9)) drop-shadow(0 8px 6px rgba(0, 0, 0, 0.6)); }
-.zombie.hit .char-img { filter: drop-shadow(0 0 22px rgba(255, 46, 77, 0.8)) drop-shadow(0 8px 6px rgba(0, 0, 0, 0.6)); }
-@keyframes jolt { 0%, 100% { transform: translateY(0) rotate(0); } 30% { transform: translateY(-18px) rotate(-6deg) scale(1.05); } 60% { transform: translateY(0) rotate(4deg); } }
+/* Mummy: stiff, dragging shuffle */
+.mummy .char-img { animation: shuffle 2.2s ease-in-out infinite; }
+@keyframes shuffle {
+  0%, 100% { transform: rotate(-4deg) translateY(0); }
+  20% { transform: rotate(-1deg) translateY(-4px); }
+  50% { transform: rotate(4deg) translateY(0); }
+  70% { transform: rotate(1deg) translateY(-4px); }
+}
+
+/* tapped: Frankenstein is electrified */
+.walker.frank.zap .char-img { animation: zap 0.12s steps(2) 12; }
+@keyframes zap {
+  0% { transform: translate(-4px, 2px) rotate(-2deg); filter: brightness(2.2) saturate(0.2) drop-shadow(0 0 26px #d9f6ff) drop-shadow(0 0 50px #8cff5a); }
+  100% { transform: translate(4px, -3px) rotate(2deg); filter: brightness(1.1) hue-rotate(40deg) drop-shadow(0 0 18px #fff36b); }
+}
+/* tapped: zombies topple over and get back up */
+.walker.zombie.topple .char-img { animation: topple 1.9s cubic-bezier(.5, 0, .3, 1); }
+@keyframes topple {
+  0% { transform: rotate(0); }
+  25% { transform: rotate(-82deg) translateY(10%); }
+  32% { transform: rotate(-74deg) translateY(8%); }
+  38%, 62% { transform: rotate(-80deg) translateY(10%); }
+  85% { transform: rotate(6deg); }
+  100% { transform: rotate(0); }
+}
+/* expanding ring of light on taps */
+.ring-burst { position: fixed; z-index: 21; width: var(--s); height: var(--s); margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2); border-radius: 50%; border: 3px solid var(--c); box-shadow: 0 0 24px var(--c), inset 0 0 24px var(--c); pointer-events: none; animation: ring-burst 0.8s ease-out forwards; }
+@keyframes ring-burst { from { transform: scale(0.1); opacity: 1; } to { transform: scale(1); opacity: 0; } }
+
+/* the mummy lunges out of the screen */
+.mummy-lunge { position: fixed; inset: 0; z-index: 35; pointer-events: none; }
+.mummy-lunge .backdrop { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(70, 40, 0, 0.55), rgba(0, 0, 0, 0.92) 70%); opacity: 0; transition: opacity 0.35s; }
+.mummy-lunge.show .backdrop { opacity: 1; }
+.mummy-lunge .char-img { position: absolute; left: 0; top: 0; transform-origin: 0 0; transform: translate(-9999px, 0); filter: drop-shadow(0 0 40px rgba(255, 200, 90, 0.55)) drop-shadow(0 20px 30px rgba(0, 0, 0, 0.8)); }
 
 /* results: everybody dances */
 .walker.dance .char-img { animation: dance 0.6s ease-in-out infinite; }
@@ -171,7 +202,6 @@ canvas.fx { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
 body.shake .screen.active, body.shake .scene { animation: shake 0.6s cubic-bezier(.36, .07, .19, .97); }
 @keyframes shake { 10%, 90% { transform: translate(-2px, 1px); } 20%, 80% { transform: translate(4px, -2px); } 30%, 50%, 70% { transform: translate(-7px, 3px); } 40%, 60% { transform: translate(7px, -3px); } }
 
-.mute { position: fixed; top: 14px; right: 14px; z-index: 30; width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--border); background: rgba(10, 4, 18, 0.7); font-size: 20px; cursor: pointer; backdrop-filter: blur(6px); }
 
 /* ============ SCREENS ============ */
 .screen { position: relative; z-index: 5; display: none; min-height: 100vh; min-height: 100svh; padding: 70px 16px 30vh; pointer-events: none; }
@@ -248,7 +278,7 @@ input[type=text]:focus { border-color: var(--pumpkin); box-shadow: 0 0 0 4px rgb
 @keyframes hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-12px) rotate(-10deg); } }
 
 /* ============ PLAYER QUIZ ============ */
-.quiz-top { width: 100%; max-width: 560px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-right: 54px; }
+.quiz-top { width: 100%; max-width: 560px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 .ring { position: relative; width: 74px; height: 74px; flex: 0 0 auto; }
 .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
 .ring circle { fill: none; stroke-width: 4; }
@@ -408,6 +438,30 @@ body[data-scene=quiz] .screen.active { justify-content: flex-start; padding-top:
 .board .scroll { max-height: 40vh; overflow-y: auto; }
 
 .denied { text-align: center; }
+#h-answers .host-actions { margin-top: 16px; }
+
+/* answer review */
+.review { max-width: 1000px; padding: 22px 32px; margin-top: 10px; text-align: left; }
+.review .q-count { font-size: 16px; }
+.rv-q { font-size: clamp(22px, 2.3vw, 34px); font-weight: 900; line-height: 1.3; margin: 8px 0 16px; }
+.rv-options { display: grid; gap: 10px; }
+.rv-opt { position: relative; overflow: hidden; display: flex; align-items: center; gap: 16px; padding: 9px 18px; border-radius: 16px; font-size: clamp(18px, 1.7vw, 24px); font-weight: 800; background: rgba(0, 0, 0, 0.45); border: 2px solid rgba(180, 107, 255, 0.25); transition: opacity 0.5s, transform 0.5s, border-color 0.4s, box-shadow 0.4s; }
+.rv-opt .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: linear-gradient(90deg, rgba(107, 47, 163, 0.55), rgba(107, 47, 163, 0.2)); transition: width 0.9s cubic-bezier(.2, .9, .3, 1); }
+.rv-opt > *:not(.fill) { position: relative; }
+.rv-opt .tag { flex: 0 0 auto; width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; font-size: 24px; background: linear-gradient(135deg, var(--purple), #2a0b45); }
+.rv-opt .txt { flex: 1; }
+.rv-opt .pct { font-family: 'Creepster', cursive; font-size: 1.3em; color: var(--muted); min-width: 3ch; text-align: right; }
+.rv-opt .tick { display: none; width: 40px; height: 40px; border-radius: 50%; place-items: center; background: var(--slime); color: #0b2a00; font-size: 22px; font-weight: 900; }
+.rv-opt.wrong { opacity: 0.4; transform: scale(0.98); }
+.rv-opt.correct { border-color: var(--slime); box-shadow: 0 0 40px rgba(140, 255, 90, 0.45), inset 0 0 30px rgba(140, 255, 90, 0.12); transform: scale(1.02); animation: picked 0.5s ease; }
+.rv-opt.correct .fill { background: linear-gradient(90deg, rgba(140, 255, 90, 0.45), rgba(140, 255, 90, 0.12)); }
+.rv-opt.correct .pct { color: var(--slime); }
+.rv-opt.correct .tick { display: grid; animation: drop-in 0.5s cubic-bezier(.2, 1.5, .4, 1); }
+.rv-expl { display: flex; gap: 14px; align-items: flex-start; margin-top: 16px; padding: 16px 20px; border-radius: 16px; background: linear-gradient(135deg, rgba(255, 122, 26, 0.18), rgba(0, 0, 0, 0.4)); border: 1px solid rgba(255, 122, 26, 0.45); opacity: 0; transform: translateY(16px); transition: all 0.6s cubic-bezier(.2, .9, .3, 1.2); }
+.rv-expl.show { opacity: 1; transform: none; }
+.rv-expl .ic { font-size: 34px; line-height: 1; }
+.rv-expl p { margin: 0; font-size: clamp(18px, 1.6vw, 24px); font-weight: 700; line-height: 1.45; }
+.host .hint { text-align: center; }
 
 @media (max-width: 860px) {
   .host .screen { padding: 24px 16px 24vh; }

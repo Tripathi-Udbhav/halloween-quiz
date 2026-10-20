@@ -102,12 +102,19 @@ const Scene = (() => {
       <button class="pumpkin p-b" aria-label="pumpkin">${PUMPKIN_SVG}</button>
       <div class="walker zombie z1">${charImg('zombie')}</div>
       <div class="walker zombie z2">${charImg('zombie', 'far')}</div>
+      <div class="walker mummy">${charImg('mummy')}</div>
       <div class="walker frank">${charImg('frank')}</div>
     </div>
     <div class="fog"><i></i><i></i></div>
     <div class="vignette"></div>
     <div class="lightning"><svg viewBox="0 0 100 300" preserveAspectRatio="none"><path d=""/></svg></div>`;
   document.body.prepend(root);
+
+  // the mummy lunges out of the screen at whoever taps it
+  const lunge = document.createElement('div');
+  lunge.className = 'mummy-lunge';
+  lunge.innerHTML = '<div class="backdrop"></div>' + charImg('mummy');
+  document.body.appendChild(lunge);
 
   const fx = document.createElement('canvas');
   fx.className = 'fx';
@@ -243,35 +250,112 @@ const Scene = (() => {
     requestAnimationFrame(frame);
   }
 
+  // an expanding ring of light where something was tapped
+  function ring(x, y, color = '#b46bff', size = 160) {
+    const el = document.createElement('div');
+    el.className = 'ring-burst';
+    el.style.cssText = `left:${x}px;top:${y}px;--c:${color};--s:${size}px`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 900);
+  }
+
+  function restartClass(el, cls, ms) {
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+    clearTimeout(el['_t' + cls]);
+    el['_t' + cls] = setTimeout(() => el.classList.remove(cls), ms);
+  }
+
   // ---------- tap anywhere: sparks + a little bat ----------
   document.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('input, .option, .btn, .mute')) return;
-    Sound.unlock();
+    if (e.target.closest('input, .option, .btn')) return;
     spawn(e.clientX, e.clientY);
     if (Math.random() < 0.6) spawnBat(e.clientX, e.clientY);
-    if (Math.random() < 0.3) Sound.squeak();
   });
 
-  // ---------- walkers: Frankenstein + zombies ----------
+  // ---------- tap effects, one per character ----------
+  const effects = {
+    // Frankenstein gets a jolt of electricity
+    frank(w, r) {
+      restartClass(w.el, 'zap', 1500);
+      lightning();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height * 0.28;
+      spawn(cx, cy, { n: 50, colors: ['#ffffff', '#d9f6ff', '#fff36b', '#8cff5a'], speed: 7, gravity: 0.02 });
+      ring(cx, cy, '#d9f6ff', 220);
+      setTimeout(() => ring(cx, cy, '#8cff5a', 300), 180);
+      return 1500;
+    },
+    // zombies topple over in a splash of slime, then get back up
+    zombie(w, r) {
+      restartClass(w.el, 'topple', 1900);
+      setTimeout(() => {
+        spawn(r.left + r.width / 2, r.bottom - 20, { n: 40, colors: ['#8cff5a', '#5fbf2a', '#c7ff8a', '#3d7a12'], speed: 5, gravity: 0.18 });
+        shake();
+      }, 450);
+      return 1900;
+    },
+    // the mummy grows huge and lunges out of the screen
+    mummy(w, r) {
+      mummyLunge(w, r);
+      return 3000;
+    },
+  };
+
+  let lunging = false;
+  function mummyLunge(w, r) {
+    if (lunging) return;
+    lunging = true;
+    const img = lunge.querySelector('img');
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const aspect = 903 / 1100;
+    // big enough to burst past the edges on a phone
+    const th = Math.min(vh * 0.95, (vw * 1.5) / aspect);
+    const tw = th * aspect;
+    img.style.width = tw + 'px';
+    const s0 = r.width / tw;
+    const tx1 = (vw - tw) / 2;
+    const ty1 = (vh - th) / 2;
+    const at = (x, y, sc, rot = 0) => `translate(${x}px, ${y}px) scale(${sc}) rotate(${rot}deg)`;
+    w.el.style.opacity = '0';
+    lunge.classList.add('show');
+    const anim = img.animate([
+      { transform: at(r.left, r.top, s0), offset: 0, easing: 'cubic-bezier(.2,.9,.3,1.1)' },
+      { transform: at(tx1, ty1 + th * 0.04, 1.12, -3), offset: 0.22 },
+      { transform: at(tx1, ty1, 1.0, 2), offset: 0.3 },
+      { transform: at(tx1, ty1 - 8, 1.04, -2), offset: 0.45 },
+      { transform: at(tx1, ty1, 1.0, 2), offset: 0.6 },
+      { transform: at(tx1, ty1, 1.03, -1), offset: 0.74, easing: 'cubic-bezier(.6,0,.8,.4)' },
+      { transform: at(r.left, r.top, s0), offset: 1 },
+    ], { duration: 3000 });
+    setTimeout(() => {
+      shake();
+      // strips of old bandage flying everywhere
+      spawn(vw / 2, vh * 0.45, { n: 70, colors: ['#e8d7a8', '#c9b07a', '#f4ecdf', '#8a6a3a'], speed: 9, gravity: 0.12 });
+      ring(vw / 2, vh / 2, '#ffd27a', 600);
+    }, 650);
+    setTimeout(() => lunge.classList.remove('show'), 2300);
+    anim.onfinish = () => {
+      lunging = false;
+      w.el.style.opacity = '';
+    };
+  }
+
+  // ---------- walkers: Frankenstein, the mummy and zombies ----------
   const walkers = [
-    { el: root.querySelector('.frank'), speed: 26, x: 0.2, dir: 1, sound: () => Sound.groan(0.8), only: ['lobby', 'results'] },
-    { el: root.querySelector('.z1'), speed: 14, x: 0.75, dir: -1, sound: () => Sound.groan(1.1), only: ['join', 'lobby', 'done', 'results'] },
-    { el: root.querySelector('.z2'), speed: 11, x: 0.45, dir: 1, sound: () => Sound.groan(1.3), only: ['join', 'lobby', 'done', 'results'] },
+    { el: root.querySelector('.frank'), kind: 'frank', speed: 26, x: 0.2, dir: 1, only: ['lobby', 'results'] },
+    { el: root.querySelector('.mummy'), kind: 'mummy', speed: 18, x: 0.05, dir: 1, only: ['join', 'lobby', 'done', 'results'] },
+    { el: root.querySelector('.z1'), kind: 'zombie', speed: 14, x: 0.75, dir: -1, only: ['join', 'lobby', 'done', 'results'] },
+    { el: root.querySelector('.z2'), kind: 'zombie', speed: 11, x: 0.45, dir: 1, only: ['join', 'lobby', 'done', 'results'] },
   ];
   walkers.forEach((w) => {
     w.px = w.x * window.innerWidth;
     w.paused = 0;
     w.el.addEventListener('pointerdown', (e) => {
       e.stopPropagation();
-      Sound.unlock();
-      w.sound();
-      w.paused = 1600;
-      w.el.classList.remove('hit');
-      void w.el.offsetWidth;
-      w.el.classList.add('hit');
-      const r = w.el.getBoundingClientRect();
-      spawn(r.left + r.width / 2, r.top + r.height * 0.3, { n: 18, colors: ['#8cff5a', '#c7e86a', '#ffffff'] });
-      setTimeout(() => w.el.classList.remove('hit'), 1600);
+      w.paused = effects[w.kind](w, w.el.getBoundingClientRect());
     });
   });
 
@@ -284,10 +368,10 @@ const Scene = (() => {
       const width = w.el.offsetWidth || 120;
       if (mode === 'results') {
         // stop and dance at fixed spots
-        const spots = { frank: 0.04, z1: 0.86, z2: 0.74 };
-        const key = w.el.classList.contains('frank') ? 'frank' : w.el.classList.contains('z1') ? 'z1' : 'z2';
+        const spots = { frank: 0.02, mummy: 0.15, z1: 0.86, z2: 0.73 };
+        const key = w.el.classList.contains('z1') ? 'z1' : w.el.classList.contains('z2') ? 'z2' : w.kind;
         w.px += (spots[key] * vw - w.px) * 0.05;
-        w.dir = key === 'frank' ? 1 : -1;
+        w.dir = spots[key] < 0.5 ? 1 : -1;
       } else if (w.paused > 0) {
         w.paused -= dt;
       } else {
@@ -315,10 +399,10 @@ const Scene = (() => {
       const b = { el, x: Math.random() * window.innerWidth, y: 40 + Math.random() * window.innerHeight * 0.45, vx: (Math.random() < 0.5 ? -1 : 1) * (40 + Math.random() * 50), amp: 10 + Math.random() * 30, ph: Math.random() * 6, size: 0.6 + Math.random() * 0.8, zoom: 0 };
       el.addEventListener('pointerdown', (e) => {
         e.stopPropagation();
-        Sound.unlock();
-        Sound.squeak();
         b.zoom = 1;
-        spawn(e.clientX, e.clientY, { n: 10, colors: ['#b46bff', '#ff3355', '#fff'] });
+        spawn(e.clientX, e.clientY, { n: 24, colors: ['#b46bff', '#7a2fd0', '#ff3355', '#fff'], speed: 4 });
+        ring(e.clientX, e.clientY, '#b46bff', 120);
+        for (let k = 0; k < 3; k++) spawnBat(e.clientX, e.clientY);
       });
       bats.push(b);
     }
@@ -376,12 +460,10 @@ const Scene = (() => {
 
   witch.addEventListener('pointerdown', (e) => {
     e.stopPropagation();
-    Sound.unlock();
-    Sound.cackle();
-    witch.classList.remove('loop');
-    void witch.offsetWidth;
-    witch.classList.add('loop');
-    spawn(e.clientX, e.clientY, { n: 26, colors: ['#b46bff', '#ffb347', '#fff', '#8cff5a'], speed: 4 });
+    restartClass(witch, 'loop', 1000);
+    spawn(e.clientX, e.clientY, { n: 60, colors: ['#b46bff', '#ffb347', '#fff', '#8cff5a'], speed: 6, gravity: 0.03 });
+    ring(e.clientX, e.clientY, '#b46bff', 260);
+    for (let k = 0; k < 8; k++) setTimeout(() => spawnBat(e.clientX, e.clientY), k * 60);
   });
 
   let trailTick = 0;
@@ -404,9 +486,7 @@ const Scene = (() => {
     el.style.setProperty('--tilt', (Math.random() * 30 - 15).toFixed(0) + 'deg');
     el.addEventListener('pointerdown', (e) => {
       e.stopPropagation();
-      Sound.unlock();
-      Sound.pop();
-      spawn(e.clientX, e.clientY, { n: 16, colors: ['#6b4423', '#8cff5a', '#3d2a1a'], gravity: 0.15 });
+      spawn(e.clientX, e.clientY, { n: 30, colors: ['#6b4423', '#8cff5a', '#3d2a1a'], gravity: 0.2, speed: 5 });
       el.classList.add('whacked');
     });
     handBox.appendChild(el);
@@ -419,20 +499,18 @@ const Scene = (() => {
   root.querySelectorAll('.pumpkin').forEach((p) => {
     p.addEventListener('pointerdown', (e) => {
       e.stopPropagation();
-      Sound.unlock();
-      Sound.ghost();
-      p.classList.remove('flare');
-      void p.offsetWidth;
-      p.classList.add('flare');
+      restartClass(p, 'flare', 800);
       const r = p.getBoundingClientRect();
-      spawn(r.left + r.width / 2, r.top + r.height / 3, { n: 30, colors: ['#ff7a1a', '#ffb347', '#ffe066'], speed: 4 });
+      const cx = r.left + r.width / 2;
+      ring(cx, r.top + r.height / 2, '#ff7a1a', 180);
+      for (let k = 0; k < 6; k++) setTimeout(() => spawn(cx, r.top, { n: 10, colors: ['#ff7a1a', '#ffb347', '#ffe066'], speed: 5, gravity: 0.12 }), k * 90);
     });
   });
 
   // ---------- lightning ----------
   const flashEl = root.querySelector('.lightning');
   const boltPath = flashEl.querySelector('path');
-  function lightning(withThunder = true) {
+  function lightning() {
     let d = `M${30 + Math.random() * 40} 0`;
     let x = 50;
     for (let y = 20; y <= 300; y += 20 + Math.random() * 20) {
@@ -444,9 +522,8 @@ const Scene = (() => {
     flashEl.classList.remove('strike');
     void flashEl.offsetWidth;
     flashEl.classList.add('strike');
-    if (withThunder) Sound.thunder(0.15, 0.7);
   }
-  setInterval(() => { if (mode !== 'quiz' && Math.random() < 0.5) lightning(false); }, 16000);
+  setInterval(() => { if (mode !== 'quiz' && Math.random() < 0.5) lightning(); }, 16000);
 
   function shake() {
     document.body.classList.remove('shake');
@@ -459,20 +536,6 @@ const Scene = (() => {
     mode = m;
     document.body.dataset.scene = m;
   }
-
-  // ---------- sound toggle ----------
-  const mute = document.createElement('button');
-  mute.className = 'mute';
-  mute.setAttribute('aria-label', 'Toggle sound');
-  const paintMute = () => (mute.textContent = Sound.isMuted() ? '🔇' : '🔊');
-  paintMute();
-  mute.addEventListener('click', () => {
-    Sound.unlock();
-    Sound.setMuted(!Sound.isMuted());
-    paintMute();
-    if (!Sound.isMuted()) Sound.pop();
-  });
-  document.body.appendChild(mute);
 
   setMode('join');
   requestAnimationFrame(frame);

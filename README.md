@@ -7,12 +7,18 @@ A live, Halloween-themed quiz. Players scan a QR code, enter their name, and ans
 
 ## What's on screen
 
-- A purple-and-black haunted night: moon, stars, fog, graveyard, bats, a witch flying on her broomstick, zombies, zombie hands rising from the graves, and Frankenstein walking slowly while players wait to start. The character artwork lives in `public/img` (frank.webp, witch.webp, zombie.webp, with transparent backgrounds). Replace a file with another of the same name to swap a character.
-- Everything can be tapped: Frankenstein and the zombies groan, the witch cackles and does a loop, bats squeak and flee, pumpkins flare, and tapping anywhere sends off sparks.
-- An evil laugh with lightning when a player enters their name.
-- A heartbeat in the last 10 seconds.
-- Results: tombstones rise from the graves (3rd, 2nd, then 1st with a crown and fanfare), then the "Book of the Dead" leaderboard. Each phone shows a personal tombstone with a ghoulish title and one pumpkin lit per correct answer.
-- All sounds are generated in the browser, with no audio files. The 🔊 button mutes them. On the host screen, click anywhere once so the browser allows sound.
+- A purple-and-black haunted night: moon, stars, fog, graveyard, bats, a witch flying on her broomstick, a mummy, zombies, zombie hands rising from the graves, and Frankenstein walking slowly while players wait to start. The character artwork lives in `public/img` (frank.webp, mummy.webp, witch.webp, zombie.webp, with transparent backgrounds). Replace a file with another of the same name to swap a character.
+- Every character reacts when tapped:
+  - **Frankenstein** is electrified, with lightning, sparks and shock rings.
+  - **The mummy** grows huge and lunges out of the screen, with bandage scraps flying.
+  - **Zombies** topple over in a splash of slime and get back up.
+  - **The witch** does a loop and releases a swarm of bats.
+  - **Bats** burst into purple smoke, **pumpkins** erupt in embers, and **zombie hands** sink back into the dirt.
+  - Tapping anywhere else sends off sparks.
+- An evil "MWA-HA-HA-HA!" moment with lightning when a player enters their name.
+- Results: tombstones rise from the graves (3rd, 2nd, then 1st with a crown), then the "Book of the Dead" leaderboard. Each phone shows a personal tombstone with a ghoulish title and one pumpkin lit per correct answer.
+- **📜 Reveal the Answers** (on the host results screen): steps through each question, shows what percentage of the room picked each option, highlights the correct answer, and shows the explanation from `questions.json`. Arrow keys and presentation clickers work.
+- The quiz has no sound.
 
 ## Change the questions
 
@@ -22,7 +28,8 @@ Edit `questions.json`. Each question looks like this:
 {
   "question": "Your question here?",
   "options": ["Option A", "Option B", "Option C", "Option D"],
-  "answer": 1
+  "answer": 1,
+  "explanation": "Shown on the projector when you reveal the answers."
 }
 ```
 

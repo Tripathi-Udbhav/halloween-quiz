@@ -69,7 +69,25 @@ function hostState() {
     remainingMs: remainingMs(),
     progress: progress(),
     results: phase === 'ended' ? results : null,
+    answers: phase === 'ended' ? answerReview() : null,
   };
+}
+
+// The answer key, explanations and how many players picked each option.
+// Only ever sent to the host screen, and only after the quiz has ended.
+function answerReview() {
+  const all = [...players.values()];
+  return questions.map((q, i) => {
+    const picks = (q.options || []).map((_, o) => all.filter((p) => p.answers[i] === o).length);
+    return {
+      question: q.question,
+      options: q.options,
+      answer: q.answer,
+      explanation: q.explanation || '',
+      picks,
+      players: all.length,
+    };
+  });
 }
 
 function playerResult(p) {

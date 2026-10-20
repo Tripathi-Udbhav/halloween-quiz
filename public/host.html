@@ -29,7 +29,6 @@
       <button class="btn" id="start-btn" disabled>🕯️ Start the Quiz</button>
       <button class="btn ghost" id="clear-btn">Clear players</button>
     </div>
-    <p class="hint" style="text-align:center">Click anywhere once to wake the spooky sounds 🔊</p>
   </section>
 
   <!-- Running -->
@@ -68,9 +67,27 @@
       </div>
     </div>
     <div class="host-actions">
+      <button class="btn" id="answers-btn">📜 Reveal the Answers</button>
       <button class="btn ghost" id="replay-btn">Replay reveal</button>
       <button class="btn ghost" id="reset-btn">Back to lobby</button>
     </div>
+  </section>
+
+  <!-- Answer review -->
+  <section class="screen" id="h-answers">
+    <h1 class="host-title" style="font-size:clamp(34px,4vw,64px)"><span class="drip">The Answers Revealed</span></h1>
+    <div class="card review">
+      <div class="q-count" id="rv-count">Question 1 of 5</div>
+      <div class="rv-q" id="rv-q"></div>
+      <div class="rv-options" id="rv-options"></div>
+      <div class="rv-expl" id="rv-expl"><span class="ic">🕯️</span><p id="rv-expl-text"></p></div>
+    </div>
+    <div class="host-actions">
+      <button class="btn ghost" id="rv-prev">◀ Previous</button>
+      <button class="btn" id="rv-next">Next ▶</button>
+      <button class="btn ghost" id="rv-back">Back to winners</button>
+    </div>
+    <p class="hint" style="text-align:center">Tip: the ← → arrow keys and presentation clickers work here too</p>
   </section>
 
   <section class="screen" id="h-denied">
@@ -83,7 +100,6 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="vendor/confetti.js"></script>
-  <script src="sound.js"></script>
   <script src="scene.js"></script>
   <script src="host.js"></script>
 </body>

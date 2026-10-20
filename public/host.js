@@ -11,10 +11,8 @@ let shownNames = 0;
 let questionCount = 5;
 let playerCount = 0;
 let revealTimers = [];
-let lastJoinSound = 0;
-let lastBeat = 0;
 
-const SCENE_FOR = { 'h-lobby': 'lobby', 'h-running': 'quiz', 'h-results': 'results', 'h-denied': 'join' };
+const SCENE_FOR = { 'h-lobby': 'lobby', 'h-running': 'quiz', 'h-results': 'results', 'h-answers': 'quiz', 'h-denied': 'join' };
 function show(id) {
   document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === id));
   Scene.setMode(SCENE_FOR[id]);
@@ -48,7 +46,7 @@ socket.on('host:state', (s) => {
       tick = setInterval(updateCountdown, 250);
       updateCountdown();
       show('h-running');
-      if (prev === 'lobby') { Scene.lightning(true); Scene.shake(); }
+      if (prev === 'lobby') { Scene.lightning(); Scene.shake(); }
     }
     const { finished, total } = s.progress;
     $('finished').textContent = finished;
@@ -56,6 +54,7 @@ socket.on('host:state', (s) => {
     $('finished-bar').style.width = total ? (finished / total) * 100 + '%' : '0';
   } else if (s.phase === 'ended') {
     clearInterval(tick);
+    answers = s.answers || [];
     if (prev !== 'ended') {
       show('h-results');
       reveal(s.results);
@@ -84,10 +83,6 @@ function renderLobby(names) {
       Scene.spawn(r.left + r.width / 2, r.top + r.height / 2, { n: 12, colors: ['#b46bff', '#8cff5a', '#fff'] });
     });
   }
-  if (names.length > shownNames && Date.now() - lastJoinSound > 900) {
-    lastJoinSound = Date.now();
-    Sound.ghost();
-  }
   shownNames = names.length;
   chips.scrollTop = chips.scrollHeight;
 }
@@ -102,10 +97,6 @@ function updateCountdown() {
   const ring = $('big-ring');
   ring.classList.toggle('warn', left <= 30000 && left > 10000);
   ring.classList.toggle('danger', left <= 10000);
-  if (left <= 10000 && left > 0 && Date.now() - lastBeat > 950) {
-    lastBeat = Date.now();
-    Sound.heartbeat();
-  }
   if (left <= 0) clearInterval(tick);
 }
 
@@ -148,7 +139,7 @@ function reveal(results) {
     const el = $('place-' + n);
     if (!results[n - 1]) return;
     el.classList.add('show');
-    Scene.lightning(true);
+    Scene.lightning();
     Scene.shake();
     setTimeout(() => {
       const r = el.getBoundingClientRect();
@@ -158,18 +149,15 @@ function reveal(results) {
 
   msg.textContent = 'The spirits are counting…';
   crystal.classList.add('show');
-  Sound.drumroll(1.8);
   at(2200, () => { crystal.classList.remove('show'); msg.textContent = 'From the third grave rises…'; });
   at(3400, () => rise(3));
-  at(5600, () => { msg.textContent = 'From the second grave…'; Sound.drumroll(1.2); });
+  at(5600, () => { msg.textContent = 'From the second grave…'; });
   at(6900, () => rise(2));
-  at(9100, () => { msg.textContent = 'And the Supreme Ghoul is…'; Sound.drumroll(2); });
+  at(9100, () => { msg.textContent = 'And the Supreme Ghoul is…'; });
   at(11200, () => {
     rise(1);
     msg.textContent = results[0] ? `👑 ${results[0].name}! 👑` : 'Nobody played… how spooky.';
     if (!results[0]) return;
-    Sound.fanfare();
-    setTimeout(() => Sound.evilLaugh(), 1500);
     Scene.flyWitch();
     celebrate();
   });
@@ -188,9 +176,73 @@ function celebrate() {
   confetti({ particleCount: 180, spread: 110, origin: { y: 0.5 }, colors });
 }
 
+// ---- answer review: one question at a time, then the correct answer and why ----
+let answers = [];
+let rvIndex = 0;
+let rvTimers = [];
+const TAGS = ['🎃', '👻', '🦇', '💀', '🕷️', '🧙'];
+
+function showReview(i) {
+  if (!answers.length) return;
+  rvIndex = Math.max(0, Math.min(answers.length - 1, i));
+  const a = answers[rvIndex];
+  rvTimers.forEach(clearTimeout);
+  rvTimers = [];
+  show('h-answers');
+  $('rv-count').textContent = `Question ${rvIndex + 1} of ${answers.length}`;
+  $('rv-q').textContent = a.question;
+  $('rv-prev').disabled = rvIndex === 0;
+  $('rv-next').textContent = rvIndex === answers.length - 1 ? 'Finish 🎃' : 'Next ▶';
+  $('rv-expl').classList.remove('show');
+  $('rv-expl-text').textContent = a.explanation;
+  const box = $('rv-options');
+  box.innerHTML = '';
+  a.options.forEach((opt, o) => {
+    const pct = a.players ? Math.round((a.picks[o] / a.players) * 100) : 0;
+    const row = document.createElement('div');
+    row.className = 'rv-opt';
+    row.innerHTML = `<div class="fill"></div><span class="tag">${TAGS[o % TAGS.length]}</span><span class="txt"></span><span class="pct">${pct}%</span><span class="tick">✔</span>`;
+    row.querySelector('.txt').textContent = opt;
+    row.dataset.pct = pct;
+    box.appendChild(row);
+  });
+  const card = document.querySelector('.review');
+  card.style.animation = 'none';
+  void card.offsetWidth;
+  card.style.animation = 'rise-in 0.5s cubic-bezier(.2,.9,.3,1.2)';
+
+  const at = (ms, fn) => rvTimers.push(setTimeout(fn, ms));
+  // how the room voted, then the correct answer, then the explanation
+  at(600, () => box.querySelectorAll('.rv-opt').forEach((r) => (r.querySelector('.fill').style.width = r.dataset.pct + '%')));
+  at(1700, () => {
+    box.querySelectorAll('.rv-opt').forEach((r, o) => r.classList.add(o === a.answer ? 'correct' : 'wrong'));
+    const c = box.children[a.answer];
+    if (!c) return;
+    const r = c.getBoundingClientRect();
+    Scene.spawn(r.left + 40, r.top + r.height / 2, { n: 50, colors: ['#8cff5a', '#c7ff8a', '#ffffff', '#ffd54a'], speed: 6 });
+    Scene.lightning();
+  });
+  at(2400, () => $('rv-expl').classList.add('show'));
+}
+
+function reviewNext() {
+  if (rvIndex >= answers.length - 1) return show('h-results');
+  showReview(rvIndex + 1);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (!$('h-answers').classList.contains('active')) return;
+  if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); reviewNext(); }
+  if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); showReview(rvIndex - 1); }
+});
+
 // ---- buttons ----
-$('start-btn').onclick = () => { Sound.unlock(); socket.emit('host:start'); };
+$('start-btn').onclick = () => socket.emit('host:start');
 $('end-btn').onclick = () => confirm('End the quiz for everyone now?') && socket.emit('host:end');
 $('reset-btn').onclick = () => socket.emit('host:reset');
 $('replay-btn').onclick = () => reveal(lastResults);
+$('answers-btn').onclick = () => showReview(0);
+$('rv-next').onclick = reviewNext;
+$('rv-prev').onclick = () => showReview(rvIndex - 1);
+$('rv-back').onclick = () => show('h-results');
 $('clear-btn').onclick = () => confirm('Remove all joined players?') && socket.emit('host:clear');

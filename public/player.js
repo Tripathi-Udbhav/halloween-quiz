@@ -10,7 +10,6 @@ let endAt = 0;
 let totalMs = 120000;
 let tick = null;
 let resultShown = false;
-let lastBeat = 0;
 let laughing = false;
 let pendingStart = null;
 
@@ -45,8 +44,7 @@ function playLaugh() {
   const word = 'MWA-HA-HA-HA!';
   $('laugh-text').innerHTML = [...word].map((c) => `<span>${c}</span>`).join('');
   $('laugh').classList.add('show');
-  Sound.evilLaugh();
-  setTimeout(() => { Scene.lightning(false); Scene.shake(); }, 450);
+  setTimeout(() => { Scene.lightning(); Scene.shake(); }, 450);
   return new Promise((resolve) => setTimeout(() => {
     $('laugh').classList.remove('show');
     laughing = false;
@@ -58,7 +56,6 @@ $('join-form').addEventListener('submit', (e) => {
   e.preventDefault();
   const name = $('name').value.trim();
   if (!name) return;
-  Sound.unlock();
   $('join-btn').disabled = true;
   $('join-error').textContent = '';
   const r = $('join-btn').getBoundingClientRect();
@@ -116,7 +113,7 @@ socket.on('quiz:start', ({ questions: qs, remainingMs, quizSeconds }) => {
     pendingStart = { questions: qs, endAt: Date.now() + remainingMs };
     return;
   }
-  Scene.lightning(true);
+  Scene.lightning();
   beginQuiz(qs, remainingMs, 0);
 });
 
@@ -145,14 +142,10 @@ function updateTimer() {
   ring.classList.toggle('danger', left <= 10000);
   const onQuiz = $('s-quiz').classList.contains('active');
   document.body.classList.toggle('danger', onQuiz && left <= 10000 && left > 0);
-  if (onQuiz && left <= 10000 && left > 0 && Date.now() - lastBeat > 950) {
-    lastBeat = Date.now();
-    Sound.heartbeat();
-  }
   if (left <= 0) {
     clearInterval(tick);
     if (!resultShown && onQuiz) {
-      Scene.lightning(true);
+      Scene.lightning();
       Scene.shake();
       showDone(false);
     }
@@ -188,7 +181,6 @@ function renderQuestion() {
 function answer(choice, btn, e) {
   document.querySelectorAll('.option').forEach((b) => (b.disabled = true));
   btn.classList.add('picked');
-  Sound.bubble();
   Scene.spawn(e.clientX || 0, e.clientY || 0, { n: 20, colors: ['#ff7a1a', '#b46bff', '#8cff5a'] });
   if (navigator.vibrate) navigator.vibrate(30);
   socket.emit('player:answer', { q: current, choice }, (res) => {
@@ -196,10 +188,8 @@ function answer(choice, btn, e) {
     current = res.answered;
     setTimeout(() => {
       if (resultShown) return;
-      if (current >= questions.length) {
-        Sound.ghost();
-        showDone(true);
-      } else renderQuestion();
+      if (current >= questions.length) showDone(true);
+      else renderQuestion();
     }, 380);
   });
 }
@@ -268,22 +258,15 @@ function showResult(r) {
   }, 60);
 
   [...row.children].forEach((el, i) => {
-    if (i < r.correct) setTimeout(() => { el.classList.add('lit'); Sound.pop(); }, 1300 + i * 260);
+    if (i < r.correct) setTimeout(() => el.classList.add('lit'), 1300 + i * 260);
   });
 
   setTimeout(() => {
-    if (r.rank === 1) {
-      Sound.fanfare();
-      setTimeout(() => Sound.evilLaugh(), 1400);
+    if (r.rank <= 3) {
       celebrate();
       Scene.flyWitch();
-    } else if (r.rank <= 3) {
-      Sound.cackle();
-      celebrate();
-      Scene.flyWitch();
-    } else {
-      Sound.groan(1.1);
     }
+    Scene.lightning();
   }, 1200);
 }
 
