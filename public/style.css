@@ -248,7 +248,7 @@ input[type=text]:focus { border-color: var(--pumpkin); box-shadow: 0 0 0 4px rgb
 @keyframes hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-12px) rotate(-10deg); } }
 
 /* ============ PLAYER QUIZ ============ */
-.quiz-top { width: 100%; max-width: 560px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; padding-right: 54px; }
+.quiz-top { width: 100%; max-width: 560px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding-right: 54px; }
 .ring { position: relative; width: 74px; height: 74px; flex: 0 0 auto; }
 .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
 .ring circle { fill: none; stroke-width: 4; }
@@ -262,13 +262,15 @@ input[type=text]:focus { border-color: var(--pumpkin); box-shadow: 0 0 0 4px rgb
 body.danger::after { content: ''; position: fixed; inset: 0; z-index: 4; pointer-events: none; box-shadow: inset 0 0 120px 30px rgba(255, 46, 77, 0.45); animation: heart 1s ease-in-out infinite; }
 @keyframes heart { 0%, 100% { opacity: 0.3; } 20% { opacity: 1; } }
 
-.question-card { max-width: 560px; }
+.question-card { max-width: 560px; padding: 20px 16px; }
+/* the quiz has no characters at the bottom, so use the whole screen for the question */
+body[data-scene=quiz] .screen.active { justify-content: flex-start; padding-top: 14px; padding-bottom: 24px; }
 .q-count { color: var(--pumpkin-glow); font-weight: 900; letter-spacing: 0.14em; text-transform: uppercase; font-size: 13px; }
-.q-text { font-size: 22px; font-weight: 900; margin: 10px 0 22px; line-height: 1.35; }
-.options { display: grid; gap: 12px; }
+.q-text { font-size: clamp(17px, 4.6vw, 22px); font-weight: 900; margin: 8px 0 16px; line-height: 1.3; }
+.options { display: grid; gap: 10px; }
 .option {
   position: relative; overflow: hidden; display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; cursor: pointer;
-  padding: 16px; border-radius: 16px; font-size: 17px; font-family: inherit; font-weight: 800; color: var(--bone);
+  padding: 11px 14px; border-radius: 16px; font-size: 16px; line-height: 1.3; font-family: inherit; font-weight: 800; color: var(--bone);
   background: linear-gradient(135deg, rgba(60, 20, 96, 0.55), rgba(0, 0, 0, 0.55)); border: 2px solid rgba(180, 107, 255, 0.25);
   transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s; opacity: 0; animation: deal 0.4s ease forwards;
 }
@@ -281,7 +283,7 @@ body.danger::after { content: ''; position: fixed; inset: 0; z-index: 4; pointer
 @keyframes picked { 40% { transform: scale(1.04); } }
 .option:disabled { cursor: default; }
 
-.dots { display: flex; gap: 10px; justify-content: center; margin-top: 22px; }
+.dots { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
 .dots span { font-size: 18px; filter: grayscale(1) brightness(0.4); transition: filter 0.3s, transform 0.3s; }
 .dots span.done { filter: none; }
 .dots span.now { filter: none; transform: scale(1.25); animation: bob 1s ease-in-out infinite; }

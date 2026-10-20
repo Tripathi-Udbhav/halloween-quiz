@@ -1,27 +1,57 @@
 [
   {
-    "question": "SAMPLE: Which of these helps water drain out of a plant pot?",
-    "options": ["A drainage hole", "A shiny lid", "More glitter", "A spell book"],
-    "answer": 0
+    "question": "A customer asks: \"Why should I pot my electronics at all?\" What is the best answer?",
+    "options": [
+      "To glue the housing together",
+      "To make it lighter",
+      "To protect them from water, dust, chemicals, shock and heat",
+      "To make the product look better"
+    ],
+    "answer": 2,
+    "explanation": "Potting is protection. It is not glue and not decoration."
   },
   {
-    "question": "SAMPLE: When repotting, the new pot should usually be…",
-    "options": ["Much smaller", "Slightly bigger", "Made of ice", "Exactly the same size"],
-    "answer": 1
+    "question": "The part swings from freezing to very hot, again and again. The electronics inside are delicate. Which potting material fits best?",
+    "options": [
+      "Hard epoxy — the strongest option",
+      "Silicone — widest temperature range, stays soft",
+      "Nothing — a plastic cover is enough",
+      "Whatever is cheapest per kilo"
+    ],
+    "answer": 1,
+    "explanation": "A hard material shrinks and pulls delicate parts apart. Silicone stays soft and takes the widest temperature range."
   },
   {
-    "question": "SAMPLE: What is a common sign a plant is root-bound?",
-    "options": ["It glows at night", "Roots circling or poking out the bottom", "Leaves turn into bats", "It hums"],
-    "answer": 1
+    "question": "A customer says: \"Our potting takes up to 24 hours to harden. Protection is fine, but the line is too slow.\" What do you put on the table?",
+    "options": [
+      "Buy more curing ovens",
+      "24 hours is normal, nothing to do",
+      "Add a second shift",
+      "Technomelt — as little as 30 seconds"
+    ],
+    "answer": 3,
+    "explanation": "Technomelt low pressure molding: cycle times as short as 30 seconds, instead of up to 24 hours."
   },
   {
-    "question": "SAMPLE: Which material is added to potting mix to improve airflow?",
-    "options": ["Perlite", "Candy corn", "Sand from a haunted beach", "Cobwebs"],
-    "answer": 0
+    "question": "A customer says: \"My protection is fine. My problem is heat — it cannot escape.\" Which part of the portfolio do you bring?",
+    "options": [
+      "Bergquist — Henkel's thermal materials",
+      "More potting, applied thicker",
+      "Loctite Frekote release agents",
+      "Technomelt"
+    ],
+    "answer": 0,
+    "explanation": "Bergquist carries heat away. Potting protects, but it is not a heat path."
   },
   {
-    "question": "SAMPLE: Best time of year to repot most houseplants?",
-    "options": ["Midnight on Halloween", "Spring", "Never", "During a full moon only"],
-    "answer": 1
+    "question": "Purchasing says: \"A competitor is 18 % cheaper per kilo. Match it or we switch.\" What is your best move?",
+    "options": [
+      "Match the price immediately",
+      "Offer a discount at year end",
+      "Talk total cost: material used, time saved, one field failure",
+      "Go around purchasing"
+    ],
+    "answer": 2,
+    "explanation": "Never fight on price per kilo. A potted part that fails in the field cannot be repaired — one recall wipes out the 18 %."
   }
 ]
