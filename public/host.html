@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quiz Host Screen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="host">
+  <!-- Lobby -->
+  <section class="screen" id="h-lobby">
+    <h1 class="host-title spooky">🎃 Haunted Potting Quiz 🎃</h1>
+    <p class="host-sub muted">Scan the code, enter your name, and wait for the spell to begin…</p>
+    <div class="lobby-grid">
+      <div>
+        <div class="qr-box" id="qr"></div>
+        <div class="qr-url" id="qr-url"></div>
+      </div>
+      <div class="souls">
+        <div class="souls-head">
+          <h2>Souls Gathered</h2>
+          <div class="souls-count" id="count">0</div>
+        </div>
+        <div class="chips" id="chips"><span class="muted">Waiting for the first brave soul…</span></div>
+      </div>
+    </div>
+    <div class="host-actions">
+      <button class="btn" id="start-btn" disabled>🕯️ Start the Quiz</button>
+      <button class="btn ghost" id="clear-btn">Clear players</button>
+    </div>
+  </section>
+
+  <!-- Running -->
+  <section class="screen" id="h-running">
+    <h2 class="spooky" style="font-size:48px">The Clock is Ticking…</h2>
+    <div class="countdown" id="countdown">2:00</div>
+    <div class="cauldron">
+      <div class="bar"><div id="finished-bar"></div></div>
+      <p><span id="finished">0</span> of <span id="total">0</span> souls have sealed their answers</p>
+    </div>
+    <div class="host-actions">
+      <button class="btn danger" id="end-btn">End Quiz Now</button>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section class="screen" id="h-results">
+    <h1 class="host-title spooky">🏆 The Winners Rise 🏆</h1>
+    <div class="reveal-msg spooky" id="reveal-msg"></div>
+    <div class="podium">
+      <div class="place p2" id="place-2"><div class="icon">🥈</div><div class="who"></div><div class="meta"></div><div class="block">2</div></div>
+      <div class="place p1" id="place-1"><div class="icon">👑</div><div class="who"></div><div class="meta"></div><div class="block">1</div></div>
+      <div class="place p3" id="place-3"><div class="icon">🥉</div><div class="who"></div><div class="meta"></div><div class="block">3</div></div>
+    </div>
+    <div class="board" id="board">
+      <div class="scroll">
+        <table>
+          <thead><tr><th>#</th><th>Name</th><th>Correct</th><th>Time</th></tr></thead>
+          <tbody id="board-body"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="host-actions">
+      <button class="btn ghost" id="replay-btn">Replay reveal</button>
+      <button class="btn ghost" id="reset-btn">Back to lobby</button>
+    </div>
+  </section>
+
+  <section class="screen" id="h-denied">
+    <div class="card denied">
+      <div class="big-emoji">🔒</div>
+      <h2 class="spooky" style="font-size:36px">Host key required</h2>
+      <p class="muted">Open this page as <b>/host?key=YOUR_KEY</b></p>
+    </div>
+  </section>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script src="decor.js"></script>
+  <script src="host.js"></script>
+</body>
+</html>

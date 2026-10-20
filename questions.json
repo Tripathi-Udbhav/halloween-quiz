@@ -1,0 +1,27 @@
+[
+  {
+    "question": "SAMPLE: Which of these helps water drain out of a plant pot?",
+    "options": ["A drainage hole", "A shiny lid", "More glitter", "A spell book"],
+    "answer": 0
+  },
+  {
+    "question": "SAMPLE: When repotting, the new pot should usually be…",
+    "options": ["Much smaller", "Slightly bigger", "Made of ice", "Exactly the same size"],
+    "answer": 1
+  },
+  {
+    "question": "SAMPLE: What is a common sign a plant is root-bound?",
+    "options": ["It glows at night", "Roots circling or poking out the bottom", "Leaves turn into bats", "It hums"],
+    "answer": 1
+  },
+  {
+    "question": "SAMPLE: Which material is added to potting mix to improve airflow?",
+    "options": ["Perlite", "Candy corn", "Sand from a haunted beach", "Cobwebs"],
+    "answer": 0
+  },
+  {
+    "question": "SAMPLE: Best time of year to repot most houseplants?",
+    "options": ["Midnight on Halloween", "Spring", "Never", "During a full moon only"],
+    "answer": 1
+  }
+]

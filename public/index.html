@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="theme-color" content="#0d0416">
+  <title>Haunted Potting Quiz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Join -->
+  <section class="screen active" id="s-join">
+    <div class="card">
+      <div class="big-emoji bob">🎃</div>
+      <h1 class="spooky" style="font-size:44px">Haunted Potting Quiz</h1>
+      <p class="muted">Enter your name… if you dare.</p>
+      <form id="join-form" autocomplete="off">
+        <input type="text" id="name" maxlength="24" placeholder="Your name" required>
+        <button class="btn full" type="submit" id="join-btn">Enter the Crypt</button>
+        <p class="error" id="join-error"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- Lobby -->
+  <section class="screen" id="s-lobby">
+    <div class="card">
+      <div class="big-emoji bob">👻</div>
+      <h2 class="spooky" style="font-size:38px">Welcome, <span id="lobby-name"></span>!</h2>
+      <p>You're in. Keep your eyes on the big screen…</p>
+      <p class="muted">The quiz begins when the host says so.<br><b id="lobby-count">0</b> souls have gathered.</p>
+      <p class="muted" style="font-size:14px">⏳ You'll get <b id="lobby-time">2 minutes</b> for all questions. Most correct wins — ties go to the fastest.</p>
+    </div>
+  </section>
+
+  <!-- Quiz -->
+  <section class="screen" id="s-quiz">
+    <div class="quiz-top">
+      <div class="spooky" style="font-size:24px">🎃 <span id="quiz-name"></span></div>
+      <div class="timer" id="timer">2:00</div>
+    </div>
+    <div class="timebar"><div id="timebar"></div></div>
+    <div class="card question-card">
+      <div class="q-count" id="q-count">Question 1 of 5</div>
+      <div class="q-text" id="q-text"></div>
+      <div class="options" id="options"></div>
+      <div class="dots" id="dots"></div>
+    </div>
+  </section>
+
+  <!-- Done, waiting -->
+  <section class="screen" id="s-done">
+    <div class="card">
+      <div class="big-emoji bob">⚰️</div>
+      <h2 class="spooky" style="font-size:40px" id="done-title">Answers Sealed!</h2>
+      <p id="done-text">Your fate is locked in the coffin. Wait for the others…</p>
+      <p class="muted">Results will rise from the grave on the big screen.</p>
+    </div>
+  </section>
+
+  <!-- Result -->
+  <section class="screen" id="s-result">
+    <div class="card">
+      <div class="big-emoji" id="res-emoji">🏆</div>
+      <div class="muted">Your rank</div>
+      <div class="rank-big" id="res-rank">#1</div>
+      <div class="muted" id="res-of"></div>
+      <div class="stat-row">
+        <div class="stat"><b id="res-score">0/5</b><small>correct</small></div>
+        <div class="stat"><b id="res-time">0s</b><small>time</small></div>
+      </div>
+      <h3 class="spooky" style="font-size:26px">Top Ghouls</h3>
+      <div class="mini-podium" id="res-top"></div>
+    </div>
+  </section>
+
+  <div class="flash" id="flash"><h1>TIME'S UP!</h1></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="decor.js"></script>
+  <script src="player.js"></script>
+</body>
+</html>
