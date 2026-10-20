@@ -1,6 +1,6 @@
 // The haunted night scene shared by the player and host screens:
 // starry purple-black sky, moon, graveyard, bats, a flying witch, zombies and Frankenstein.
-// Everything is vector (SVG) or a DPR-aware canvas, so it stays crisp on HD screens and projectors.
+// Scenery is vector (SVG) or a DPR-aware canvas, so it stays crisp on HD screens and projectors.
 const Scene = (() => {
   const svgNS = 'http://www.w3.org/2000/svg';
   const isHost = document.body.classList.contains('host');
@@ -8,136 +8,8 @@ const Scene = (() => {
   let mode = 'join';
 
   // ---------- SVG artwork ----------
-  const FRANK_SVG = `
-  <svg viewBox="0 0 160 260" class="char-svg" aria-hidden="true">
-    <defs>
-      <linearGradient id="fskin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fd27a"/><stop offset="1" stop-color="#5b8a41"/></linearGradient>
-      <linearGradient id="fjacket" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#40305c"/><stop offset="1" stop-color="#1a1226"/></linearGradient>
-      <radialGradient id="feye"><stop offset="0" stop-color="#f6ffd0"/><stop offset="1" stop-color="#c7e86a"/></radialGradient>
-    </defs>
-    <ellipse cx="80" cy="252" rx="52" ry="6" fill="rgba(0,0,0,.55)"/>
-    <g class="body-bob">
-      <g class="leg leg-b" style="transform-origin:80px 150px">
-        <rect x="70" y="148" width="22" height="80" rx="4" fill="#241d30"/>
-        <rect x="64" y="222" width="38" height="24" rx="7" fill="#0c0911"/>
-      </g>
-      <g class="arm arm-b" style="transform-origin:92px 94px">
-        <rect x="88" y="84" width="56" height="20" rx="7" fill="#21182e"/>
-        <rect x="140" y="85" width="17" height="18" rx="7" fill="#5f8a45"/>
-      </g>
-      <path d="M46 84 L114 84 L120 160 L42 160 Z" fill="url(#fjacket)"/>
-      <path d="M70 84 L80 124 L90 84 Z" fill="#100b17"/>
-      <path d="M74 84 L80 104 L86 84 Z" fill="#d8d0c0"/>
-      <circle cx="80" cy="132" r="2.5" fill="#6b5a87"/><circle cx="80" cy="144" r="2.5" fill="#6b5a87"/>
-      <path d="M52 110 l12 2 M54 106 l2 8 M58 107 l2 8 M62 108 l1 8" stroke="#8c7aa8" stroke-width="1.4" fill="none"/>
-      <rect x="42" y="152" width="78" height="9" fill="#0b0810"/>
-      <rect x="76" y="152" width="10" height="9" fill="#a99a3a"/>
-      <g class="leg leg-f" style="transform-origin:68px 150px">
-        <rect x="55" y="148" width="25" height="82" rx="4" fill="#2f2740"/>
-        <rect x="49" y="224" width="44" height="24" rx="7" fill="#08060b"/>
-        <rect x="49" y="242" width="44" height="6" rx="3" fill="#2b2433"/>
-      </g>
-      <rect x="66" y="68" width="28" height="20" fill="#5f8c46"/>
-      <rect x="54" y="74" width="14" height="9" rx="2" fill="#a6aeb8" stroke="#4c525a" stroke-width="1.5"/>
-      <rect x="92" y="74" width="14" height="9" rx="2" fill="#a6aeb8" stroke="#4c525a" stroke-width="1.5"/>
-      <g class="head" style="transform-origin:80px 72px">
-        <rect x="50" y="12" width="60" height="62" rx="9" fill="url(#fskin)"/>
-        <path d="M46 24 L46 9 Q80 -3 114 9 L114 24 L107 18 L100 27 L92 18 L84 28 L76 18 L68 27 L60 18 L53 26 Z" fill="#0a0a0e"/>
-        <path d="M58 34 L102 32" stroke="#2f4a22" stroke-width="2"/>
-        <path d="M62 30v8 M70 30v8 M78 29v8 M86 29v8 M94 29v8" stroke="#2f4a22" stroke-width="1.6"/>
-        <rect x="56" y="38" width="50" height="6" rx="3" fill="#24361b"/>
-        <g class="eyes">
-          <ellipse cx="68" cy="50" rx="6.5" ry="4.5" fill="url(#feye)"/>
-          <ellipse cx="94" cy="50" rx="6.5" ry="4.5" fill="url(#feye)"/>
-          <circle class="pupil" cx="70" cy="50.5" r="2.3" fill="#151515"/>
-          <circle class="pupil" cx="96" cy="50.5" r="2.3" fill="#151515"/>
-        </g>
-        <path d="M60 56 q8 3 16 0 M86 56 q8 3 16 0" stroke="#4a7136" stroke-width="1.5" fill="none"/>
-        <path d="M81 50 L86 61 L79 62" stroke="#3f6330" stroke-width="2" fill="none"/>
-        <path class="mouth" d="M64 67 L98 66" stroke="#1f3016" stroke-width="2.6" stroke-linecap="round"/>
-        <path d="M70 64v6 M78 63v6 M86 63v6 M94 63v6" stroke="#1f3016" stroke-width="1.3"/>
-        <path d="M100 42 l6 14" stroke="#2f4a22" stroke-width="1.6"/>
-      </g>
-      <g class="arm arm-f" style="transform-origin:84px 98px">
-        <rect x="80" y="90" width="60" height="22" rx="7" fill="#2c2040"/>
-        <rect x="128" y="90" width="10" height="22" fill="#1b1328"/>
-        <rect x="136" y="91" width="19" height="20" rx="7" fill="#7aa85b"/>
-        <path d="M144 96h10 M144 101h11 M144 106h10" stroke="#4f7a38" stroke-width="1.2"/>
-      </g>
-    </g>
-  </svg>`;
-
-  const ZOMBIE_SVG = (shirt = '#3f6a6a', skin = '#9cb87f') => `
-  <svg viewBox="0 0 140 230" class="char-svg" aria-hidden="true">
-    <ellipse cx="70" cy="222" rx="44" ry="5" fill="rgba(0,0,0,.55)"/>
-    <g class="body-lurch" style="transform-origin:66px 210px">
-      <g class="leg leg-b" style="transform-origin:68px 140px">
-        <path d="M60 138 h18 v64 l-4 -4 l-4 6 l-4 -5 l-6 4 Z" fill="#33291f"/>
-        <rect x="56" y="202" width="30" height="13" rx="5" fill="#17120d"/>
-      </g>
-      <g class="arm arm-b" style="transform-origin:82px 84px">
-        <rect x="76" y="80" width="15" height="34" rx="6" fill="${shirt}" opacity=".8"/>
-        <rect x="77" y="110" width="13" height="30" rx="6" fill="${skin}" opacity=".85"/>
-        <path d="M78 140 l-2 8 M83 141 l0 9 M88 140 l2 8" stroke="${skin}" stroke-width="3" stroke-linecap="round" opacity=".85"/>
-      </g>
-      <path d="M42 80 Q58 64 94 72 L100 142 L92 136 L86 146 L78 137 L70 148 L62 138 L54 147 L46 140 Z" fill="${shirt}"/>
-      <path d="M56 96 q6 -4 10 2 q-4 6 -10 -2 M78 116 q5 -3 9 1 q-3 5 -9 -1" fill="rgba(0,0,0,.25)"/>
-      <path d="M58 86 l20 44" stroke="rgba(0,0,0,.25)" stroke-width="2"/>
-      <g class="leg leg-f" style="transform-origin:60px 140px">
-        <path d="M50 138 h21 v68 l-5 -5 l-5 6 l-5 -5 l-6 5 Z" fill="#4a3c2c"/>
-        <rect x="46" y="204" width="34" height="14" rx="5" fill="#1d1712"/>
-      </g>
-      <g class="head" style="transform-origin:84px 74px">
-        <ellipse cx="92" cy="50" rx="26" ry="28" fill="${skin}"/>
-        <path d="M68 40 q4 -22 24 -24 q18 0 26 18 q-6 -6 -10 -2 q-4 -8 -10 -4 q-6 -8 -12 -2 q-8 -4 -10 4 q-4 -2 -8 10 Z" fill="#2a2a22"/>
-        <circle cx="86" cy="48" r="8" fill="#f1f1d8"/>
-        <circle class="pupil" cx="88" cy="49" r="2.4" fill="#1b1b1b"/>
-        <circle cx="106" cy="46" r="4.5" fill="#f1f1d8"/>
-        <circle class="pupil" cx="107" cy="46.5" r="1.8" fill="#b3001b"/>
-        <path class="mouth" d="M82 64 q12 12 26 0 q-12 4 -26 0 Z" fill="#2a0a0a"/>
-        <path d="M88 65 v4 M94 66 v5 M100 65 v4" stroke="#efe6c8" stroke-width="2.4"/>
-        <path d="M72 58 l8 -3 M73 62 l8 -3" stroke="#5c7349" stroke-width="1.6"/>
-        <ellipse cx="66" cy="52" rx="4" ry="7" fill="${skin}"/>
-      </g>
-      <g class="arm arm-f" style="transform-origin:86px 88px">
-        <rect x="84" y="82" width="28" height="16" rx="6" fill="${shirt}"/>
-        <path d="M110 82 l4 3 l-3 4 l4 3 l-4 4 l-1 2" fill="${shirt}"/>
-        <rect x="108" y="84" width="26" height="13" rx="6" fill="${skin}"/>
-        <path d="M132 86 q6 4 4 10 M132 90 q7 4 5 10" stroke="${skin}" stroke-width="3" fill="none" stroke-linecap="round"/>
-      </g>
-    </g>
-  </svg>`;
-
-  const WITCH_SVG = `
-  <svg viewBox="0 0 230 150" class="witch-svg" aria-hidden="true">
-    <defs>
-      <linearGradient id="wcape" x1="1" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#4a1670"/><stop offset="1" stop-color="#1a0629"/></linearGradient>
-    </defs>
-    <g class="witch-bob">
-      <path class="cape" d="M104 52 Q70 46 36 70 Q62 74 70 86 Q84 78 108 90 Z" fill="url(#wcape)"/>
-      <line x1="20" y1="100" x2="205" y2="84" stroke="#6b4423" stroke-width="6" stroke-linecap="round"/>
-      <path d="M26 99 L-4 82 L2 96 L-8 100 L4 106 L-4 118 L28 104 Z" fill="#d1a64b"/>
-      <path d="M0 90 L26 100 M-2 104 L26 102 M4 112 L26 103" stroke="#9c7428" stroke-width="1.4"/>
-      <rect x="22" y="94" width="8" height="12" rx="2" fill="#7a2fb0" transform="rotate(-5 26 100)"/>
-      <path d="M118 88 L112 112 L124 114 L126 92 Z" fill="#111"/>
-      <path d="M113 98 h11 M112 104 h12" stroke="#ff7a1a" stroke-width="3"/>
-      <path d="M112 112 L132 116 L138 112 L124 110 Z" fill="#0b0b0b"/>
-      <path d="M100 50 Q122 44 138 56 L142 92 Q118 98 96 88 Z" fill="#22093a"/>
-      <path d="M130 62 Q150 70 158 86" stroke="#22093a" stroke-width="10" stroke-linecap="round" fill="none"/>
-      <circle cx="160" cy="88" r="5" fill="#86c45e"/>
-      <path d="M118 30 Q96 34 84 56 Q100 44 112 46 Q96 56 92 70 Q112 52 124 44 Z" fill="#ff7a1a"/>
-      <circle cx="132" cy="38" r="14" fill="#86c45e"/>
-      <path d="M144 36 L162 42 L145 44 Z" fill="#79b553"/>
-      <path d="M138 50 q4 4 0 8" stroke="#79b553" stroke-width="5" stroke-linecap="round" fill="none"/>
-      <circle cx="138" cy="34" r="2.2" fill="#1b1b1b"/>
-      <path d="M134 46 q4 2 8 0" stroke="#2c4a1c" stroke-width="1.6" fill="none"/>
-      <circle cx="148" cy="44" r="1.5" fill="#3e6c2a"/>
-      <ellipse cx="130" cy="26" rx="27" ry="5" fill="#12061c"/>
-      <path d="M114 26 Q122 4 100 -6 Q120 -6 134 6 L146 26 Z" fill="#12061c"/>
-      <path d="M116 22 L144 22 L145 26 L115 26 Z" fill="#9b4dff"/>
-      <rect x="126" y="20" width="7" height="7" fill="none" stroke="#ffb347" stroke-width="1.6"/>
-    </g>
-  </svg>`;
+  // the characters are the artwork in public/img (backgrounds removed); they face left
+  const charImg = (name, cls = '') => `<img class="char-img ${cls}" src="img/${name}.webp" alt="" draggable="false" decoding="async">`;
 
   const BAT_SVG = `
   <svg viewBox="0 0 100 50" class="bat-svg" aria-hidden="true">
@@ -222,15 +94,15 @@ const Scene = (() => {
     <div class="moon"><div class="crater c1"></div><div class="crater c2"></div><div class="crater c3"></div></div>
     <div class="clouds"><i></i><i></i><i></i></div>
     <div class="bats"></div>
-    <div class="witch-wrap"><div class="witch" title="Tap me!">${WITCH_SVG}</div></div>
+    <div class="witch-wrap"><div class="witch" title="Tap me!">${charImg('witch')}</div></div>
     <div class="graveyard">${graveyardSVG()}</div>
     <div class="ground-layer">
       <div class="hands"></div>
       <button class="pumpkin p-a" aria-label="pumpkin">${PUMPKIN_SVG}</button>
       <button class="pumpkin p-b" aria-label="pumpkin">${PUMPKIN_SVG}</button>
-      <div class="walker zombie z1">${ZOMBIE_SVG()}</div>
-      <div class="walker zombie z2">${ZOMBIE_SVG('#5b3a6e', '#a8bf8a')}</div>
-      <div class="walker frank">${FRANK_SVG}</div>
+      <div class="walker zombie z1">${charImg('zombie')}</div>
+      <div class="walker zombie z2">${charImg('zombie', 'far')}</div>
+      <div class="walker frank">${charImg('frank')}</div>
     </div>
     <div class="fog"><i></i><i></i></div>
     <div class="vignette"></div>
@@ -423,7 +295,8 @@ const Scene = (() => {
         if (w.px > vw - width * 0.6) w.dir = -1;
         if (w.px < -width * 0.4) w.dir = 1;
       }
-      w.el.style.transform = `translateX(${w.px}px) scaleX(${w.dir})`;
+      // the artwork faces left, so mirror it when walking right
+      w.el.style.transform = `translateX(${w.px}px) scaleX(${-w.dir})`;
       w.el.classList.toggle('dance', mode === 'results');
     }
   }
@@ -604,7 +477,7 @@ const Scene = (() => {
   setMode('join');
   requestAnimationFrame(frame);
 
-  return { setMode, lightning, shake, spawn, spawnBat, flyWitch, FRANK_SVG, ZOMBIE_SVG, PUMPKIN_SVG, HAND_SVG };
+  return { setMode, lightning, shake, spawn, spawnBat, flyWitch, PUMPKIN_SVG, HAND_SVG };
 })();
 
 function formatClock(ms) {

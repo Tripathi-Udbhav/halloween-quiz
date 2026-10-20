@@ -7,7 +7,7 @@ A live, Halloween-themed quiz. Players scan a QR code, enter their name, and ans
 
 ## What's on screen
 
-- A purple-and-black haunted night: moon, stars, fog, graveyard, bats, a witch flying on her broomstick, zombies, zombie hands rising from the graves, and Frankenstein walking slowly while players wait to start.
+- A purple-and-black haunted night: moon, stars, fog, graveyard, bats, a witch flying on her broomstick, zombies, zombie hands rising from the graves, and Frankenstein walking slowly while players wait to start. The character artwork lives in `public/img` (frank.webp, witch.webp, zombie.webp, with transparent backgrounds). Replace a file with another of the same name to swap a character.
 - Everything can be tapped: Frankenstein and the zombies groan, the witch cackles and does a loop, bats squeak and flee, pumpkins flare, and tapping anywhere sends off sparks.
 - An evil laugh with lightning when a player enters their name.
 - A heartbeat in the last 10 seconds.

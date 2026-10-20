@@ -79,71 +79,56 @@ canvas.fx { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
 .graveyard svg { width: 100%; height: 100%; display: block; }
 
 .ground-layer { position: absolute; left: 0; right: 0; bottom: 0; height: 40vh; }
-.walker { position: absolute; left: 0; bottom: 1.2vh; pointer-events: auto; cursor: pointer; transition: opacity 0.8s; will-change: transform; filter: drop-shadow(0 0 10px rgba(140, 255, 90, 0.18)); }
+.walker { position: absolute; left: 0; bottom: 1.2vh; pointer-events: auto; cursor: pointer; transition: opacity 0.8s; will-change: transform; }
 .walker.gone { opacity: 0; pointer-events: none; }
-.frank { width: clamp(96px, 16vh, 170px); }
-.zombie { width: clamp(80px, 13vh, 140px); }
-.z2 { width: clamp(70px, 11vh, 120px); opacity: 0.9; }
-.host .frank { width: clamp(140px, 24vh, 260px); }
-.host .zombie { width: clamp(110px, 19vh, 200px); }
-.host .z2 { width: clamp(96px, 16vh, 170px); }
-.char-svg { display: block; width: 100%; height: auto; overflow: visible; }
-.char-svg g, .witch-svg g, .bat-svg g { transform-box: view-box; }
+.frank { width: clamp(110px, 19vh, 200px); }
+.zombie { width: clamp(100px, 17vh, 180px); }
+.z2 { width: clamp(80px, 13vh, 140px); }
+.host .frank { width: clamp(160px, 28vh, 300px); }
+.host .zombie { width: clamp(140px, 24vh, 260px); }
+.host .z2 { width: clamp(110px, 18vh, 200px); }
+.char-img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; transform-origin: 50% 100%; filter: drop-shadow(0 0 14px rgba(140, 255, 90, 0.22)) drop-shadow(0 8px 6px rgba(0, 0, 0, 0.6)); }
+.char-img.far { filter: brightness(0.75) saturate(0.85) drop-shadow(0 6px 5px rgba(0, 0, 0, 0.6)); }
 
-/* Frankenstein: slow, stiff, heavy steps */
-.frank .leg-f { animation: stepA 1.9s ease-in-out infinite; }
-.frank .leg-b { animation: stepB 1.9s ease-in-out infinite; }
-.frank .arm-f { animation: armA 1.9s ease-in-out infinite; }
-.frank .arm-b { animation: armB 1.9s ease-in-out infinite; }
-.frank .body-bob { animation: bob 0.95s ease-in-out infinite; }
-.frank .head { animation: nod 3.8s ease-in-out infinite; }
-@keyframes stepA { 0%, 100% { transform: rotate(-13deg); } 50% { transform: rotate(13deg); } }
-@keyframes stepB { 0%, 100% { transform: rotate(13deg); } 50% { transform: rotate(-13deg); } }
-@keyframes armA { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(4deg); } }
-@keyframes armB { 0%, 100% { transform: rotate(4deg); } 50% { transform: rotate(-5deg); } }
-@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-@keyframes nod { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(3deg); } }
-.frank .eyes ellipse { filter: drop-shadow(0 0 3px #d4ff6b); }
+/* Frankenstein: slow, heavy, side-to-side stomp */
+.frank .char-img { animation: stomp 1.9s ease-in-out infinite; }
+@keyframes stomp {
+  0%, 100% { transform: rotate(-3.5deg) translateY(0); }
+  25% { transform: rotate(0deg) translateY(-7px); }
+  50% { transform: rotate(3.5deg) translateY(0); }
+  75% { transform: rotate(0deg) translateY(-7px); }
+}
 
 /* Zombies: lurching shamble */
-.zombie .leg-f { animation: stepA 2.4s ease-in-out infinite; }
-.zombie .leg-b { animation: stepB 2.4s ease-in-out infinite; }
-.zombie .arm-f { animation: reach 2.4s ease-in-out infinite; }
-.zombie .arm-b { animation: dangle 2.4s ease-in-out infinite; }
-.zombie .body-lurch { animation: lurch 2.4s ease-in-out infinite; }
-.zombie .head { animation: wobble 1.7s ease-in-out infinite; }
-.z2 .leg-f, .z2 .leg-b, .z2 .arm-f, .z2 .arm-b, .z2 .body-lurch { animation-duration: 2.9s; }
-@keyframes reach { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(8deg); } }
-@keyframes dangle { 0%, 100% { transform: rotate(-16deg); } 50% { transform: rotate(10deg); } }
-@keyframes lurch { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(4deg) translateY(-2px); } }
-@keyframes wobble { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(7deg); } }
+.zombie .char-img { animation: lurch 2.4s ease-in-out infinite; }
+.z2 .char-img { animation-duration: 2.9s; animation-delay: -1s; }
+@keyframes lurch {
+  0%, 100% { transform: rotate(-5deg) skewX(2deg) translateY(0); }
+  30% { transform: rotate(1deg) skewX(-1deg) translateY(-5px); }
+  55% { transform: rotate(5deg) skewX(-3deg) translateY(0); }
+  80% { transform: rotate(0deg) skewX(1deg) translateY(-3px); }
+}
 
 /* tapped */
-.walker.hit .char-svg { animation: jolt 0.5s ease 3; }
-.frank.hit .eyes ellipse { fill: #ff3355; filter: drop-shadow(0 0 6px #ff3355); }
-.zombie.hit .head { animation: headspin 0.8s ease 2; }
-@keyframes jolt { 0%, 100% { transform: translateY(0) rotate(0); } 30% { transform: translateY(-14px) rotate(-4deg); } 60% { transform: translateY(0) rotate(3deg); } }
-@keyframes headspin { 50% { transform: rotate(-25deg) translateY(4px); } }
+.walker.hit .char-img { animation: jolt 0.5s ease 3; }
+.frank.hit .char-img { filter: drop-shadow(0 0 22px rgba(140, 255, 90, 0.9)) drop-shadow(0 8px 6px rgba(0, 0, 0, 0.6)); }
+.zombie.hit .char-img { filter: drop-shadow(0 0 22px rgba(255, 46, 77, 0.8)) drop-shadow(0 8px 6px rgba(0, 0, 0, 0.6)); }
+@keyframes jolt { 0%, 100% { transform: translateY(0) rotate(0); } 30% { transform: translateY(-18px) rotate(-6deg) scale(1.05); } 60% { transform: translateY(0) rotate(4deg); } }
 
 /* results: everybody dances */
-.walker.dance .char-svg { animation: dance 0.6s ease-in-out infinite; }
-.walker.dance .arm-f, .walker.dance .arm-b { animation: armsUp 0.6s ease-in-out infinite; }
-.walker.dance .leg-f { animation: stepA 0.6s ease-in-out infinite; }
-.walker.dance .leg-b { animation: stepB 0.6s ease-in-out infinite; }
-@keyframes dance { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-18px) rotate(5deg); } }
-@keyframes armsUp { 0%, 100% { transform: rotate(-60deg); } 50% { transform: rotate(-35deg); } }
+.walker.dance .char-img { animation: dance 0.6s ease-in-out infinite; }
+@keyframes dance { 0%, 100% { transform: translateY(0) rotate(-7deg); } 50% { transform: translateY(-22px) rotate(7deg) scale(1.03); } }
 
 /* witch */
-.witch-wrap { position: absolute; left: 0; top: 0; width: clamp(150px, 22vw, 300px); transform: translate(-9999px, 0); will-change: transform; }
-.witch { pointer-events: auto; cursor: pointer; filter: drop-shadow(0 0 16px rgba(180, 107, 255, 0.55)); }
-.witch-svg { display: block; width: 100%; height: auto; overflow: visible; }
-.witch-bob { animation: bob 1.2s ease-in-out infinite; }
-.witch .cape { transform-origin: 104px 60px; animation: flutter 0.5s ease-in-out infinite alternate; }
-@keyframes flutter { from { transform: skewY(-6deg) scaleX(1); } to { transform: skewY(5deg) scaleX(1.08); } }
+.witch-wrap { position: absolute; left: 0; top: 0; width: clamp(170px, 26vw, 360px); transform: translate(-9999px, 0); will-change: transform; }
+.witch { pointer-events: auto; cursor: pointer; }
+.witch .char-img { transform-origin: 50% 50%; animation: fly 1.4s ease-in-out infinite; filter: drop-shadow(0 0 18px rgba(180, 107, 255, 0.55)); }
+@keyframes fly { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-10px) rotate(2deg); } }
 .witch.loop { animation: loop 1s ease-in-out; }
 @keyframes loop { 0% { transform: rotate(0); } 50% { transform: rotate(-200deg) scale(1.2); } 100% { transform: rotate(-360deg); } }
 
 /* bats */
+.bat-svg g { transform-box: view-box; }
 .bat { position: absolute; left: 0; top: 0; width: clamp(40px, 5vw, 70px); pointer-events: auto; cursor: pointer; will-change: transform; filter: drop-shadow(0 0 6px rgba(180, 107, 255, 0.5)); }
 .bat-svg { width: 100%; display: block; }
 .bat .wing-l { animation: flapL var(--flap, 0.22s) ease-in-out infinite alternate; }
