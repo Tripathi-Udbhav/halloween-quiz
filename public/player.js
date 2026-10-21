@@ -9,14 +9,14 @@ let current = 0;
 let endAt = 0;
 let totalMs = 120000;
 let tick = null;
-let resultShown = false;
+let quizOver = false;
 let laughing = false;
 let pendingStart = null;
 
 function getToken() { try { return localStorage.getItem(TOKEN_KEY); } catch { return null; } }
 function setToken(t) { try { t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); } catch {} }
 
-const SCENE_FOR = { 's-join': 'join', 's-lobby': 'lobby', 's-quiz': 'quiz', 's-done': 'done', 's-result': 'results' };
+const SCENE_FOR = { 's-join': 'join', 's-lobby': 'lobby', 's-quiz': 'quiz', 's-done': 'done' };
 function show(id) {
   document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('active', s.id === id));
   Scene.setMode(SCENE_FOR[id]);
@@ -35,7 +35,7 @@ function applyState(state) {
   $('lobby-time').textContent = Number.isInteger(mins) ? `${mins} minute${mins === 1 ? '' : 's'}` : `${state.quizSeconds} seconds`;
   if (state.phase === 'lobby') show('s-lobby');
   else if (state.phase === 'running') beginQuiz(state.questions, state.remainingMs - (Date.now() - (state.receivedAt || Date.now())), state.answered);
-  else if (state.phase === 'ended') showResult(state.result);
+  else if (state.phase === 'ended') showOver();
 }
 
 // ---- join, with the evil laugh ----
@@ -121,7 +121,7 @@ socket.on('quiz:start', ({ questions: qs, remainingMs, quizSeconds }) => {
 });
 
 function beginQuiz(qs, remainingMs, answered) {
-  resultShown = false;
+  quizOver = false;
   questions = qs;
   current = answered;
   endAt = Date.now() + remainingMs;
@@ -147,7 +147,7 @@ function updateTimer() {
   document.body.classList.toggle('danger', onQuiz && left <= 10000 && left > 0);
   if (left <= 0) {
     clearInterval(tick);
-    if (!resultShown && onQuiz) {
+    if (!quizOver && onQuiz) {
       Scene.lightning();
       Scene.shake();
       showDone(false);
@@ -190,7 +190,7 @@ function answer(choice, btn, e) {
     if (!res.ok) return; // time ran out; server will send results
     current = res.answered;
     setTimeout(() => {
-      if (resultShown) return;
+      if (quizOver) return;
       if (current >= questions.length) showDone(true);
       else renderQuestion();
     }, 380);
@@ -200,89 +200,23 @@ function answer(choice, btn, e) {
 function showDone(finishedAll) {
   $('done-title').textContent = finishedAll ? 'Answers Sealed!' : "Time's Up!";
   $('done-text').textContent = finishedAll
-    ? 'Your fate is locked in the coffin. Wait for the others…'
-    : 'The clock has struck midnight. Your answers so far are locked in.';
+    ? 'Your fate is locked in the coffin. Wait for the results on the big screen…'
+    : 'The clock has struck midnight. Your answers so far are locked in. Wait for the results on the big screen…';
   show('s-done');
 }
 
-// ---- results ----
-socket.on('quiz:over', (result) => {
+// ---- quiz over: positions are only revealed on the big screen ----
+socket.on('quiz:over', () => {
   clearInterval(tick);
-  showResult(result);
+  showOver();
 });
 
-const EPITAPHS = {
-  win: ['Rose from the grave to rule them all.', 'Feared by the living, envied by the dead.', 'The crypt bows to its new ruler.'],
-  podium: ['So close to the throne, they can smell the crown.', 'A legend whispered around every cauldron.', 'Too powerful to stay buried.'],
-  good: ['Potted with skill, haunted by one mistake.', 'Will return next Halloween… stronger.', 'Gone, but not forgotten by the leaderboard.'],
-  meh: ['Wandered the graveyard, found some answers.', 'Lost in the fog… but still standing.', 'Brains: present. Answers: partially.'],
-  zero: ['Rest in peace, sweet potting soul.', 'The pumpkins remain unlit… for now.', 'Even the zombies feel sorry.'],
-};
-const pick = (a) => a[Math.floor(Math.random() * a.length)];
-
-function showResult(r) {
-  if (!r || r.rank == null) return show('s-lobby');
-  resultShown = true;
-  const t = ghoulTitle(r.rank, r.correct, r.total, r.playerCount);
-  $('res-icon').textContent = r.rank === 1 ? '🏆' : t.icon; // the tombstone already wears the crown
-  $('res-title').textContent = t.title;
-  $('res-name').textContent = me ? me.name : '';
-  $('res-of').textContent = `of ${r.playerCount} ${r.playerCount === 1 ? 'soul' : 'souls'}`;
-  $('res-score').textContent = `${r.correct}/${r.total}`;
-  $('res-time').textContent = formatTime(r.timeMs);
-
-  const tomb = $('tomb');
-  tomb.className = 'tomb' + (r.rank === 1 ? ' gold' : r.rank === 2 ? ' silver' : r.rank === 3 ? ' bronze' : '');
-  $('tomb-crown').style.display = r.rank === 1 ? '' : 'none';
-  $('tomb-lies').textContent = r.rank <= 3 && r.correct > 0 ? 'ALL HAIL' : 'HERE LIES';
-  const tier = r.correct === 0 ? 'zero' : r.rank === 1 ? 'win' : r.rank <= 3 ? 'podium' : r.correct >= r.total * 0.6 ? 'good' : 'meh';
-  $('res-epitaph').textContent = '“' + pick(EPITAPHS[tier]) + '”';
-
-  const medals = ['🥇', '🥈', '🥉'];
-  $('res-top').innerHTML = r.top3
-    .map((p, i) => `<div class="row"><span>${medals[i]} ${escapeHtml(p.name)}</span><span class="muted">${p.correct}/${r.total} · ${formatTime(p.timeMs)}</span></div>`)
-    .join('');
-
-  // pumpkins: one per question, lit for each correct answer
-  const row = $('res-pumpkins');
-  row.innerHTML = Array.from({ length: r.total }, () => `<div class="pk">${Scene.PUMPKIN_SVG}</div>`).join('');
-  show('s-result');
-
-  // rank "rises from the grave": count down from the bottom to the real rank
-  const rankEl = $('res-rank');
-  const from = Math.max(r.playerCount, r.rank);
-  const steps = Math.min(20, from - r.rank);
-  rankEl.textContent = from;
-  let s = 0;
-  const count = setInterval(() => {
-    s++;
-    rankEl.textContent = steps ? Math.round(from - ((from - r.rank) * s) / steps) : r.rank;
-    if (s >= steps) clearInterval(count);
-  }, 60);
-
-  [...row.children].forEach((el, i) => {
-    if (i < r.correct) setTimeout(() => el.classList.add('lit'), 1300 + i * 260);
-  });
-
-  setTimeout(() => {
-    if (r.rank <= 3) {
-      celebrate();
-      Scene.flyWitch();
-    }
-    Scene.lightning();
-  }, 1200);
-}
-
-function celebrate() {
-  if (typeof confetti !== 'function') return;
-  const colors = ['#ff7a1a', '#b46bff', '#8cff5a', '#ffd54a', '#ffffff'];
-  const end = Date.now() + 2500;
-  (function frame() {
-    confetti({ particleCount: 3, angle: 60, spread: 60, origin: { x: 0, y: 0.7 }, colors });
-    confetti({ particleCount: 3, angle: 120, spread: 60, origin: { x: 1, y: 0.7 }, colors });
-    if (Date.now() < end) requestAnimationFrame(frame);
-  })();
-  confetti({ particleCount: 90, spread: 100, origin: { y: 0.5 }, colors: ['#ff7a1a', '#b46bff', '#8cff5a', '#ffd54a'] });
+function showOver() {
+  quizOver = true;
+  $('done-title').textContent = 'The Graves Are Sealed';
+  $('done-text').textContent = 'All souls have answered. Eyes on the big screen — the champions are about to rise…';
+  show('s-done');
+  Scene.lightning();
 }
 
 socket.on('quiz:lobby', ({ playerCount }) => {

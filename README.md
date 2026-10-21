@@ -8,17 +8,19 @@ A live, Halloween-themed quiz. Players scan a QR code, enter their name, and ans
 ## What's on screen
 
 - A purple-and-black haunted night: moon, stars, fog, graveyard, bats, a haunted house, a witch on her broomstick, a mummy, a zombie, zombie hands rising from the graves, and Frankenstein walking slowly while players wait. The character artwork lives in `public/img` (frank.webp, mummy.webp, witch.webp, zombie.webp, with transparent backgrounds). Replace a file with another of the same name to swap a character.
-- The witch flies out of the haunted house's attic window, circles the sky, and flies back in.
-- On the phones' waiting screens the characters and the witch move in front of the card, each character keeps to its own part of the screen, and players can scroll the card away to watch the whole graveyard.
+- The witch slowly flies out of the haunted house's attic window, circles the sky, and flies back in.
+- On the phones' waiting screens the characters and the witch move in front of the card. Each character slowly paces its own part of the screen (mummy left, Frankenstein middle, zombie right) and never crosses the others. Players can scroll the card away to watch the whole graveyard.
 - Every character reacts when tapped:
   - **Frankenstein** hurls lightning bolts at the viewer, cracking the "glass".
-  - **The mummy** grows huge and lunges out of the screen.
-  - **The zombie** dances big on screen under disco lights and a glitter ball.
+  - **The mummy** grows huge and lunges out of the middle of the screen.
+  - **The zombie** dances big in the middle of the screen under disco lights and a glitter ball.
   - **The witch** does a loop and releases a swarm of bats.
   - **The haunted house** shakes, its lights flicker and bats pour out.
-  - **Bats** burst into purple smoke, **pumpkins** erupt in embers, and **zombie hands** sink back into the dirt.
+  - **Bats** burst into purple smoke, and **zombie hands** sink back into the dirt.
+  - **Each pumpkin has its own trick:** the left one shoots a fountain of embers, the middle one rolls over and bursts into sweets, and the right one pops its lid and lets ghosts float out.
 - An evil "MWA-HA-HA-HA!" moment with lightning when a player joins.
-- Results: tombstones rise from the graves (3rd, 2nd, then 1st with a crown), then the "Book of the Dead" leaderboard. Each phone shows a personal tombstone with a ghoulish title and one pumpkin lit per correct answer.
+- Results are revealed **only on the big screen**. Phones just say the graves are sealed and to watch the big screen.
+- The host sees three sealed graves (1st, 2nd, 3rd). Click a grave (or press → / a clicker to go 3rd → 2nd → 1st) and a bomb drops on it, fizzes and explodes in confetti. The name appears, and that place's character rises from the grave with its own dance: the zombie's shimmy for 3rd, the mummy's side-shuffle for 2nd, and Frankenstein's monster stomp for 1st, with a crown. After all three, the "Book of the Dead" leaderboard appears.
 - **📜 Reveal the Answers** (on the host results screen): steps through each question, shows what percentage of the room picked each option, highlights the correct answer, and shows the explanation from `questions.json`. Arrow keys and presentation clickers work.
 - **⬇ Results with emails** (on the host results screen) downloads a spreadsheet (CSV) of rank, name, email, score and time, so you can contact the winners. Emails are never shown on the projector.
 - The quiz has no sound.
@@ -102,6 +104,6 @@ Render and Azure are separate copies with separate players. On the day, use **on
 2. People scan the QR code and enter their names, which appear on screen.
 3. Press **Start the Quiz**. Everyone gets the questions at the same moment.
 4. The quiz ends when time runs out, when everyone has finished, or when you press **End Quiz Now**.
-5. The podium reveals 3rd, 2nd, then 1st, followed by the full leaderboard. Each phone shows that person's rank.
+5. Open the three graves one by one (3rd, 2nd, then 1st builds the most suspense). The full leaderboard follows. Phones never show positions.
 
 Note: results are kept in memory. If the server restarts during the session, the players need to rejoin.

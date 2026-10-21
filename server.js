@@ -127,18 +127,6 @@ function answerReview() {
   });
 }
 
-function playerResult(p) {
-  const r = results.find((x) => x.token === p.token);
-  return {
-    rank: r ? r.rank : null,
-    correct: p.correct,
-    total: questions.length,
-    timeMs: r ? r.timeMs : null,
-    playerCount: results.length,
-    top3: results.slice(0, 3).map(({ name, correct, timeMs }) => ({ name, correct, timeMs })),
-  };
-}
-
 function playerState(p) {
   return {
     token: p.token,
@@ -149,7 +137,6 @@ function playerState(p) {
     questions: phase === 'running' ? publicQuestions() : null,
     answered: p.answers.length,
     remainingMs: remainingMs(),
-    result: phase === 'ended' ? playerResult(p) : null,
   };
 }
 
@@ -206,9 +193,8 @@ function endQuiz() {
     .sort((a, b) => b.correct - a.correct || a.timeMs - b.timeMs)
     .map((r, i) => ({ ...r, rank: i + 1 }));
 
-  for (const p of players.values()) {
-    if (p.socketId) io.to(p.socketId).emit('quiz:over', playerResult(p));
-  }
+  // phones only learn that the quiz is over; positions are revealed on the big screen
+  io.to('players').emit('quiz:over');
   sendHostUpdate();
 }
 

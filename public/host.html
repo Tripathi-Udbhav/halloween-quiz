@@ -47,15 +47,35 @@
     </div>
   </section>
 
-  <!-- Results -->
+  <!-- Results: three sealed graves, opened one by one by the host -->
   <section class="screen" id="h-results">
-    <h1 class="host-title drip">The Graveyard of Champions</h1>
+    <h1 class="host-title" style="font-size:clamp(40px,5vw,84px)"><span class="drip">The Graveyard of Champions</span></h1>
     <div class="reveal-msg spooky violet" id="reveal-msg"></div>
-    <div class="crystal" id="crystal"></div>
-    <div class="podium">
-      <div class="grave g2" id="place-2"><div class="stone"><div class="medal">🥈</div><div class="pos">2nd</div><div class="who"></div><div class="meta"></div><div class="ttl"></div></div></div>
-      <div class="grave g1" id="place-1"><div class="crown">👑</div><div class="stone"><div class="medal">🏆</div><div class="pos">1st</div><div class="who"></div><div class="meta"></div><div class="ttl"></div></div></div>
-      <div class="grave g3" id="place-3"><div class="stone"><div class="medal">🥉</div><div class="pos">3rd</div><div class="who"></div><div class="meta"></div><div class="ttl"></div></div></div>
+    <div class="podium graves">
+      <div class="grave g2" id="place-2" data-place="2" role="button" tabindex="0" aria-label="Reveal 2nd place">
+        <div class="riser"><img src="img/mummy.webp" alt="" draggable="false"></div>
+        <div class="crown">👑</div>
+        <div class="stone">
+          <div class="sealed"><div class="pos">2nd</div><div class="rip">R.I.P.</div><div class="q">?</div><div class="tap">Click to reveal</div></div>
+          <div class="opened"><div class="medal">🥈</div><div class="pos">2nd</div><div class="who"></div><div class="meta"></div><div class="ttl"></div></div>
+        </div>
+      </div>
+      <div class="grave g1" id="place-1" data-place="1" role="button" tabindex="0" aria-label="Reveal 1st place">
+        <div class="riser"><img src="img/frank.webp" alt="" draggable="false"></div>
+        <div class="crown">👑</div>
+        <div class="stone">
+          <div class="sealed"><div class="pos">1st</div><div class="rip">R.I.P.</div><div class="q">?</div><div class="tap">Click to reveal</div></div>
+          <div class="opened"><div class="medal">🏆</div><div class="pos">1st</div><div class="who"></div><div class="meta"></div><div class="ttl"></div></div>
+        </div>
+      </div>
+      <div class="grave g3" id="place-3" data-place="3" role="button" tabindex="0" aria-label="Reveal 3rd place">
+        <div class="riser"><img src="img/zombie.webp" alt="" draggable="false"></div>
+        <div class="crown">👑</div>
+        <div class="stone">
+          <div class="sealed"><div class="pos">3rd</div><div class="rip">R.I.P.</div><div class="q">?</div><div class="tap">Click to reveal</div></div>
+          <div class="opened"><div class="medal">🥉</div><div class="pos">3rd</div><div class="who"></div><div class="meta"></div><div class="ttl"></div></div>
+        </div>
+      </div>
     </div>
     <div class="board" id="board">
       <h3>📜 The Book of the Dead</h3>
@@ -68,10 +88,12 @@
     </div>
     <div class="host-actions">
       <button class="btn" id="answers-btn">📜 Reveal the Answers</button>
-      <button class="btn ghost" id="replay-btn">Replay reveal</button>
+      <button class="btn ghost" id="board-btn">Book of the Dead</button>
+      <button class="btn ghost" id="replay-btn">Seal the graves again</button>
       <a class="btn ghost" id="csv-btn" download>⬇ Results with emails</a>
       <button class="btn ghost" id="reset-btn">Back to lobby</button>
     </div>
+    <p class="hint">Tip: click the graves in any order — or press → / your clicker to open 3rd, then 2nd, then 1st</p>
   </section>
 
   <!-- Answer review -->

@@ -10,7 +10,6 @@ let tick = null;
 let shownNames = 0;
 let questionCount = 5;
 let playerCount = 0;
-let revealTimers = [];
 
 const SCENE_FOR = { 'h-lobby': 'lobby', 'h-running': 'quiz', 'h-results': 'results', 'h-answers': 'quiz', 'h-denied': 'join' };
 function show(id) {
@@ -56,8 +55,8 @@ socket.on('host:state', (s) => {
     clearInterval(tick);
     answers = s.answers || [];
     if (prev !== 'ended') {
+      setupGraves(s.results);
       show('h-results');
-      reveal(s.results);
     }
   }
 });
@@ -100,29 +99,31 @@ function updateCountdown() {
   if (left <= 0) clearInterval(tick);
 }
 
-// ---- results: tombstones rise from the graveyard, 3rd, then 2nd, then 1st ----
+// ---- results: three sealed graves; the host opens each one with a bomb ----
 let lastResults = [];
-function reveal(results) {
+const opened = new Set();
+const PLACE_LABEL = { 1: 'the Supreme Ghoul', 2: 'second place', 3: 'third place' };
+const BOMB_SVG = `
+  <svg viewBox="0 0 120 130" aria-hidden="true">
+    <defs><radialGradient id="bombg" cx=".35" cy=".35"><stop offset="0" stop-color="#6b5a80"/><stop offset=".45" stop-color="#241a30"/><stop offset="1" stop-color="#07040b"/></radialGradient></defs>
+    <path class="fuse" d="M70 30 q10 -18 26 -14 q12 4 10 -10" fill="none" stroke="#c9a14a" stroke-width="5" stroke-linecap="round"/>
+    <rect x="56" y="24" width="22" height="16" rx="4" fill="#3a2f45" transform="rotate(20 67 32)"/>
+    <circle cx="56" cy="78" r="46" fill="url(#bombg)" stroke="rgba(180,107,255,.5)" stroke-width="2"/>
+    <ellipse cx="40" cy="60" rx="12" ry="7" fill="rgba(255,255,255,.35)" transform="rotate(-35 40 60)"/>
+    <text x="56" y="92" text-anchor="middle" font-family="Creepster, cursive" font-size="30" fill="#ff7a1a">BOO</text>
+  </svg>`;
+
+function setupGraves(results) {
   lastResults = results;
   playerCount = results.length;
-  revealTimers.forEach(clearTimeout);
-  revealTimers = [];
+  opened.clear();
   [1, 2, 3].forEach((n) => {
     const el = $('place-' + n);
-    el.classList.remove('show');
-    el.querySelectorAll('.zhand').forEach((h) => h.remove());
+    el.classList.remove('revealed', 'empty', 'rumble');
     const r = results[n - 1];
-    el.querySelector('.who').textContent = r ? r.name : '—';
-    el.querySelector('.meta').textContent = r ? `${r.correct}/${questionCount} · ${formatTime(r.timeMs)}` : '';
+    el.querySelector('.who').textContent = r ? r.name : 'An empty grave';
+    el.querySelector('.meta').textContent = r ? `${r.correct}/${questionCount} · ${formatTime(r.timeMs)}` : 'No soul rests here 🕸️';
     el.querySelector('.ttl').textContent = r ? ghoulTitle(n, r.correct, questionCount, playerCount).title : '';
-    el.style.visibility = r ? 'visible' : 'hidden';
-    // zombie hands pushing each tombstone up
-    ['l', 'r'].forEach((side) => {
-      const h = document.createElement('div');
-      h.className = 'zhand ' + side;
-      h.innerHTML = Scene.HAND_SVG('#8fae7a');
-      el.appendChild(h);
-    });
   });
   $('board').classList.remove('show');
   $('board-body').innerHTML = results
@@ -131,50 +132,102 @@ function reveal(results) {
       return `<tr style="animation-delay:${Math.min(i, 20) * 0.06}s"><td>${r.rank}</td><td>${escapeHtml(r.name)}</td><td class="ttl">${t.icon} ${t.title}</td><td>${r.correct}/${questionCount}</td><td>${formatTime(r.timeMs)}</td></tr>`;
     })
     .join('');
-
-  const msg = $('reveal-msg');
-  const crystal = $('crystal');
-  const at = (ms, fn) => revealTimers.push(setTimeout(fn, ms));
-  const rise = (n) => {
-    const el = $('place-' + n);
-    if (!results[n - 1]) return;
-    el.classList.add('show');
-    Scene.lightning();
-    Scene.shake();
-    setTimeout(() => {
-      const r = el.getBoundingClientRect();
-      Scene.spawn(r.left + r.width / 2, r.bottom - 10, { n: 40, colors: ['#6b4423', '#3d2a1a', '#8cff5a', '#b46bff'], gravity: 0.12, speed: 5 });
-    }, 300);
-  };
-
-  msg.textContent = 'The spirits are counting…';
-  crystal.classList.add('show');
-  at(2200, () => { crystal.classList.remove('show'); msg.textContent = 'From the third grave rises…'; });
-  at(3400, () => rise(3));
-  at(5600, () => { msg.textContent = 'From the second grave…'; });
-  at(6900, () => rise(2));
-  at(9100, () => { msg.textContent = 'And the Supreme Ghoul is…'; });
-  at(11200, () => {
-    rise(1);
-    msg.textContent = results[0] ? `👑 ${results[0].name}! 👑` : 'Nobody played… how spooky.';
-    if (!results[0]) return;
-    Scene.flyWitch();
-    celebrate();
-  });
-  at(14000, () => $('board').classList.add('show'));
+  $('reveal-msg').textContent = results.length ? 'Three graves… three champions. Who dares open them?' : 'Nobody played… how spooky.';
 }
 
-function celebrate() {
+function openGrave(n) {
+  if (opened.has(n) || !$('h-results').classList.contains('active')) return;
+  opened.add(n);
+  const el = $('place-' + n);
+  const r = lastResults[n - 1];
+  const msg = $('reveal-msg');
+  if (!r) {
+    el.classList.add('revealed', 'empty');
+    msg.textContent = 'This grave is empty… 🕸️';
+    afterOpen();
+    return;
+  }
+  msg.textContent = `Opening the grave of ${PLACE_LABEL[n]}…`;
+  el.classList.add('rumble');
+
+  // a bomb drops onto the grave, its fuse fizzes… then BOOM
+  const stone = el.querySelector('.stone').getBoundingClientRect();
+  const size = Math.min(140, stone.width * 0.55);
+  const bomb = document.createElement('div');
+  bomb.className = 'bomb';
+  bomb.innerHTML = BOMB_SVG;
+  bomb.style.width = size + 'px';
+  document.body.appendChild(bomb);
+  const bx = stone.left + stone.width / 2 - size / 2;
+  const by = stone.top - size * 0.75;
+  bomb.animate(
+    [
+      { transform: `translate(${bx}px, ${-size * 1.5}px) rotate(-30deg)` },
+      { transform: `translate(${bx}px, ${by}px) rotate(8deg)`, offset: 0.7 },
+      { transform: `translate(${bx}px, ${by - 24}px) rotate(-4deg)`, offset: 0.85 },
+      { transform: `translate(${bx}px, ${by}px) rotate(0deg)` },
+    ],
+    { duration: 650, easing: 'cubic-bezier(.5,0,.8,.6)', fill: 'forwards' }
+  );
+  const fizz = setInterval(() => {
+    const f = bomb.getBoundingClientRect();
+    Scene.spawn(f.left + f.width * 0.88, f.top + f.height * 0.05, { n: 4, colors: ['#fff36b', '#ffb347', '#ffffff'], speed: 2.5, gravity: 0.02 });
+  }, 60);
+  setTimeout(() => bomb.classList.add('swell'), 900);
+  setTimeout(() => {
+    clearInterval(fizz);
+    const cx = stone.left + stone.width / 2;
+    const cy = stone.top + stone.height * 0.25;
+    bomb.remove();
+    el.classList.remove('rumble');
+    el.classList.add('revealed');
+    Scene.lightning();
+    Scene.shake();
+    Scene.burst(cx, cy, 320);
+    Scene.spawn(cx, cy, { n: 80, colors: ['#ffb347', '#ff7a1a', '#ffe066', '#ffffff', '#6b4423'], speed: 9, gravity: 0.15 });
+    boomConfetti(cx / window.innerWidth, cy / window.innerHeight, n);
+    msg.textContent = n === 1 ? `👑 ${r.name} rules the graveyard! 👑` : `${n === 2 ? '🥈' : '🥉'} ${r.name} rises from the grave!`;
+    if (n === 1) Scene.flyWitch();
+    afterOpen();
+  }, 1600);
+}
+
+function afterOpen() {
+  if (opened.size < 3) return;
+  setTimeout(() => $('board').classList.add('show'), 2500);
+}
+
+function boomConfetti(x, y, n) {
   if (typeof confetti !== 'function') return;
   const colors = ['#ff7a1a', '#8cff5a', '#b46bff', '#ffd54a', '#ffffff'];
-  const end = Date.now() + 4000;
+  const origin = { x, y };
+  confetti({ particleCount: 160, spread: 110, startVelocity: 48, origin, colors, scalar: 1.1 });
+  confetti({ particleCount: 70, spread: 360, startVelocity: 30, origin, colors, ticks: 260 });
+  if (n !== 1) return;
+  // the winner gets a few extra seconds of confetti streams
+  const end = Date.now() + 3500;
   (function frame() {
     confetti({ particleCount: 4, angle: 60, spread: 70, origin: { x: 0, y: 0.8 }, colors });
     confetti({ particleCount: 4, angle: 120, spread: 70, origin: { x: 1, y: 0.8 }, colors });
     if (Date.now() < end) requestAnimationFrame(frame);
   })();
-  confetti({ particleCount: 180, spread: 110, origin: { y: 0.5 }, colors });
 }
+
+[1, 2, 3].forEach((n) => {
+  const el = $('place-' + n);
+  el.addEventListener('click', () => openGrave(n));
+  el.addEventListener('keydown', (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), openGrave(n)));
+});
+
+// presenter clickers / arrow keys open the graves in suspense order: 3rd, 2nd, then 1st
+document.addEventListener('keydown', (e) => {
+  if (!$('h-results').classList.contains('active')) return;
+  if (!['ArrowRight', 'PageDown'].includes(e.key)) return;
+  e.preventDefault();
+  const next = [3, 2, 1].find((n) => !opened.has(n));
+  if (next) openGrave(next);
+  else $('board').classList.add('show');
+});
 
 // ---- answer review: one question at a time, then the correct answer and why ----
 let answers = [];
@@ -240,7 +293,8 @@ document.addEventListener('keydown', (e) => {
 $('start-btn').onclick = () => socket.emit('host:start');
 $('end-btn').onclick = () => confirm('End the quiz for everyone now?') && socket.emit('host:end');
 $('reset-btn').onclick = () => socket.emit('host:reset');
-$('replay-btn').onclick = () => reveal(lastResults);
+$('replay-btn').onclick = () => setupGraves(lastResults);
+$('board-btn').onclick = () => $('board').classList.toggle('show');
 $('answers-btn').onclick = () => showReview(0);
 $('csv-btn').href = '/api/results.csv' + (key ? '?key=' + encodeURIComponent(key) : '');
 $('rv-next').onclick = reviewNext;

@@ -140,8 +140,9 @@ const Scene = (() => {
   ground.className = 'ground-layer';
   ground.innerHTML = `
     <div class="hands"></div>
-    <button class="pumpkin p-a" aria-label="pumpkin">${PUMPKIN_SVG}</button>
-    <button class="pumpkin p-b" aria-label="pumpkin">${PUMPKIN_SVG}</button>
+    <button class="pumpkin p-a" data-trick="embers" aria-label="pumpkin">${PUMPKIN_SVG}</button>
+    <button class="pumpkin p-b" data-trick="ghosts" aria-label="pumpkin">${PUMPKIN_SVG}</button>
+    <button class="pumpkin p-c" data-trick="candy" aria-label="pumpkin">${PUMPKIN_SVG}</button>
     <div class="walker zombie">${charImg('zombie')}</div>
     <div class="walker mummy">${charImg('mummy')}</div>
     <div class="walker frank">${charImg('frank')}</div>`;
@@ -156,7 +157,7 @@ const Scene = (() => {
   // full-screen stage: the mummy lunges out at you, the zombie dances under disco lights
   const stage = document.createElement('div');
   stage.className = 'big-stage';
-  stage.innerHTML = `<div class="backdrop"></div><div class="disco-lights">${'<i></i>'.repeat(6)}</div><div class="mover"><img class="char-img" alt="" draggable="false"></div>`;
+  stage.innerHTML = `<div class="backdrop"></div><div class="disco-lights">${'<i></i>'.repeat(6)}</div><div class="mover"><div class="flipper"><img class="char-img" alt="" draggable="false"></div></div>`;
   document.body.appendChild(stage);
 
   // Frankenstein's lightning bolts are drawn here
@@ -209,6 +210,10 @@ const Scene = (() => {
       const v = (opts.speed || 3) * (0.4 + Math.random());
       particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1, life: 1, decay: 0.012 + Math.random() * 0.02, r: 1.5 + Math.random() * 2.5, c: colors[i % colors.length], g: opts.gravity ?? 0.05, kind: 'spark' });
     }
+  }
+
+  function emoji(x, y, ch, o = {}) {
+    particles.push({ x, y, vx: o.vx || 0, vy: o.vy || -1, life: 1, decay: o.decay || 0.01, r: o.size || 28, g: o.g ?? 0.05, kind: 'emoji', ch, rot: 0, spin: o.spin || 0, sway: o.sway || 0, t: Math.random() * 6 });
   }
 
   function spawnBat(x, y) {
@@ -281,6 +286,20 @@ const Scene = (() => {
       p.life -= p.decay * dt * 0.06;
       if (p.life <= 0) { particles.splice(i, 1); continue; }
       if (p.kind === 'bat') { p.t += dt * 0.06; drawBat(fctx, p); continue; }
+      if (p.kind === 'emoji') {
+        p.t += dt * 0.004;
+        p.rot += p.spin * dt * 0.06;
+        fctx.save();
+        fctx.globalAlpha = Math.min(1, p.life * 1.6);
+        fctx.translate(p.x + Math.sin(p.t) * p.sway * 14, p.y);
+        fctx.rotate(p.rot);
+        fctx.font = `${p.r}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+        fctx.textAlign = 'center';
+        fctx.textBaseline = 'middle';
+        fctx.fillText(p.ch, 0, 0);
+        fctx.restore();
+        continue;
+      }
       fctx.globalAlpha = p.life;
       fctx.fillStyle = p.c;
       fctx.shadowColor = p.c;
@@ -351,33 +370,37 @@ const Scene = (() => {
     img.src = `img/${name}.webp`;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    // big enough to burst past the edges on a phone
-    const th = Math.min(vh * (kind === 'disco' ? 0.86 : 0.95), (vw * (kind === 'disco' ? 1.15 : 1.5)) / aspect);
+    // as big as fits, centred on the screen
+    const th = Math.min(vh * (kind === 'disco' ? 0.82 : 0.9), (vw * 0.96) / aspect);
     const tw = th * aspect;
     mover.style.width = tw + 'px';
+    // positions are the centre of the character, and it scales/rotates around its centre,
+    // so at full size it sits exactly in the middle of the screen
     const s0 = r.width / tw;
+    const sx = r.left + r.width / 2 - tw / 2;
+    const sy = r.top + r.height / 2 - th / 2;
     const tx1 = (vw - tw) / 2;
     const ty1 = (vh - th) / 2;
     // match the walker's facing so it grows out of the same pose
-    const flip = w.dir > 0 ? -1 : 1;
-    const at = (x, y, sc, rot = 0) => `translate(${x}px, ${y}px) scale(${sc * flip}, ${sc}) rotate(${rot}deg)`;
+    mover.querySelector('.flipper').style.transform = w.dir > 0 ? 'scaleX(-1)' : '';
+    const at = (x, y, sc, rot = 0) => `translate(${x}px, ${y}px) scale(${sc}) rotate(${rot}deg)`;
     w.el.style.opacity = '0';
     stage.className = 'big-stage show ' + kind;
     const frames = kind === 'disco'
       ? [
-          { transform: at(r.left, r.top, s0), offset: 0, easing: 'cubic-bezier(.2,.9,.3,1.1)' },
+          { transform: at(sx, sy, s0), offset: 0, easing: 'cubic-bezier(.2,.9,.3,1.1)' },
           { transform: at(tx1, ty1, 1), offset: 0.14 },
           { transform: at(tx1, ty1, 1), offset: 0.84, easing: 'cubic-bezier(.6,0,.8,.4)' },
-          { transform: at(r.left, r.top, s0), offset: 1 },
+          { transform: at(sx, sy, s0), offset: 1 },
         ]
       : [
-          { transform: at(r.left, r.top, s0), offset: 0, easing: 'cubic-bezier(.2,.9,.3,1.1)' },
+          { transform: at(sx, sy, s0), offset: 0, easing: 'cubic-bezier(.2,.9,.3,1.1)' },
           { transform: at(tx1, ty1 + th * 0.04, 1.12, -3), offset: 0.22 },
           { transform: at(tx1, ty1, 1.0, 2), offset: 0.3 },
           { transform: at(tx1, ty1 - 8, 1.04, -2), offset: 0.45 },
           { transform: at(tx1, ty1, 1.0, 2), offset: 0.6 },
           { transform: at(tx1, ty1, 1.03, -1), offset: 0.74, easing: 'cubic-bezier(.6,0,.8,.4)' },
-          { transform: at(r.left, r.top, s0), offset: 1 },
+          { transform: at(sx, sy, s0), offset: 1 },
         ];
     const anim = mover.animate(frames, { duration });
     if (kind === 'disco') {
@@ -494,9 +517,9 @@ const Scene = (() => {
 
   // ---------- walkers: Frankenstein, the mummy and the zombie ----------
   const walkers = [
-    { el: ground.querySelector('.frank'), kind: 'frank', speed: 26, x: 0.2, dir: 1, only: ['lobby', 'results'] },
-    { el: ground.querySelector('.mummy'), kind: 'mummy', speed: 18, x: 0.05, dir: 1, only: ['join', 'lobby', 'done', 'results'] },
-    { el: ground.querySelector('.zombie'), kind: 'zombie', speed: 14, x: 0.75, dir: -1, only: ['join', 'lobby', 'done', 'results'] },
+    { el: ground.querySelector('.frank'), kind: 'frank', speed: 12, x: 0.4, dir: 1, only: ['lobby', 'done'] },
+    { el: ground.querySelector('.mummy'), kind: 'mummy', speed: 9, x: 0.05, dir: 1, only: ['join', 'lobby', 'done'] },
+    { el: ground.querySelector('.zombie'), kind: 'zombie', speed: 8, x: 0.75, dir: -1, only: ['join', 'lobby', 'done'] },
   ];
   walkers.forEach((w) => {
     w.px = w.x * window.innerWidth;
@@ -514,29 +537,26 @@ const Scene = (() => {
     const lanes = ['mummy', 'frank', 'zombie'].filter((k) => walkers.find((w) => w.kind === k).only.includes(mode));
     for (const w of walkers) {
       const visible = w.only.includes(mode);
+      const wasGone = w.el.classList.contains('gone');
       w.el.classList.toggle('gone', !visible);
       if (!visible) continue;
       const width = w.el.offsetWidth || 120;
       const lane = lanes.indexOf(w.kind);
       const laneW = vw / lanes.length;
-      const lo = lane * laneW - width * 0.1;
-      const hi = Math.max(lo, (lane + 1) * laneW - width * 0.9);
-      if (mode !== 'results' && (w.px < lo - 4 || w.px > hi + 4)) w.px += ((lo + hi) / 2 - w.px) * 0.06;
-      if (mode === 'results') {
-        // stop and dance at fixed spots
-        const spots = { frank: 0.02, mummy: 0.16, zombie: 0.84 };
-        w.px += (spots[w.kind] * vw - w.px) * 0.05;
-        w.dir = spots[w.kind] < 0.5 ? 1 : -1;
-      } else if (w.paused > 0) {
+      // stay fully inside the lane, so neighbours never overlap
+      const lo = lane * laneW;
+      const hi = Math.max(lo, (lane + 1) * laneW - width);
+      if (wasGone) w.px = (lo + hi) / 2;
+      else if (w.px < lo - 4 || w.px > hi + 4) w.px += ((lo + hi) / 2 - w.px) * 0.03;
+      if (w.paused > 0) {
         w.paused -= dt;
       } else {
-        w.px += w.dir * w.speed * (dt / 1000) * (isHost ? 1.6 : 1);
+        w.px += w.dir * w.speed * (dt / 1000) * (isHost ? 1.5 : 1);
         if (w.px >= hi) w.dir = -1;
         if (w.px <= lo) w.dir = 1;
       }
       // the artwork faces left, so mirror it when walking right
       w.el.style.transform = `translateX(${w.px}px) scaleX(${-w.dir})`;
-      w.el.classList.toggle('dance', mode === 'results');
     }
   }
 
@@ -605,7 +625,8 @@ const Scene = (() => {
     const vh = window.innerHeight;
     const ww = witchWrap.offsetWidth || 200;
     const wh = ww * (863 / 960);
-    const dur = isHost ? 11000 : 9000;
+    // a slow, menacing flight
+    const dur = isHost ? 17000 : 15000;
     // the artwork faces right; she leaves the house flying left, turns, and comes home
     const at = (x, y, sc, face, rot = 0) => ({ transform: `translate(${x - ww / 2}px, ${y - wh / 2}px) scale(${sc * face}, ${sc}) rotate(${rot}deg)` });
     const kf = [
@@ -687,14 +708,43 @@ const Scene = (() => {
   setTimeout(riseHand, 800);
 
   // ---------- pumpkins ----------
+  // each pumpkin has its own trick
+  const tricks = {
+    // flares up and shoots a fountain of embers
+    embers(p, r, cx) {
+      restartClass(p, 'flare', 800);
+      ring(cx, r.top + r.height / 2, '#ff7a1a', 180);
+      for (let k = 0; k < 6; k++) setTimeout(() => spawn(cx, r.top, { n: 10, colors: ['#ff7a1a', '#ffb347', '#ffe066'], speed: 5, gravity: 0.12 }), k * 90);
+    },
+    // the lid pops and ghosts float out
+    ghosts(p, r, cx) {
+      restartClass(p, 'pop-lid', 900);
+      for (let k = 0; k < 4; k++) {
+        setTimeout(() => {
+          emoji(cx, r.top, '👻', { size: 30 + Math.random() * 18, vx: (Math.random() - 0.5) * 1.6, vy: -1.6 - Math.random(), g: -0.004, decay: 0.006, sway: 1 });
+          spawn(cx, r.top, { n: 8, colors: ['#ffffff', '#d9c2ff'], speed: 2, gravity: -0.02 });
+        }, 200 + k * 220);
+      }
+    },
+    // rolls over, then bursts into a shower of sweets
+    candy(p, r, cx) {
+      restartClass(p, 'roll', 900);
+      setTimeout(() => {
+        ring(cx, r.top + r.height / 2, '#ff2e9a', 200);
+        const sweets = ['🍬', '🍭', '🍫', '🍬', '🍭'];
+        for (let k = 0; k < 18; k++) {
+          const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;
+          const v = 4 + Math.random() * 4;
+          emoji(cx, r.top + r.height / 3, sweets[k % sweets.length], { size: 20 + Math.random() * 12, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: 0.16, decay: 0.01, spin: (Math.random() - 0.5) * 0.3 });
+        }
+      }, 700);
+    },
+  };
   ground.querySelectorAll('.pumpkin').forEach((p) => {
     p.addEventListener('pointerdown', (e) => {
       e.stopPropagation();
-      restartClass(p, 'flare', 800);
       const r = p.getBoundingClientRect();
-      const cx = r.left + r.width / 2;
-      ring(cx, r.top + r.height / 2, '#ff7a1a', 180);
-      for (let k = 0; k < 6; k++) setTimeout(() => spawn(cx, r.top, { n: 10, colors: ['#ff7a1a', '#ffb347', '#ffe066'], speed: 5, gravity: 0.12 }), k * 90);
+      tricks[p.dataset.trick](p, r, r.left + r.width / 2);
     });
   });
 
@@ -731,7 +781,7 @@ const Scene = (() => {
   setMode('join');
   requestAnimationFrame(frame);
 
-  return { setMode, lightning, shake, spawn, spawnBat, flyWitch, PUMPKIN_SVG, HAND_SVG };
+  return { setMode, lightning, shake, spawn, spawnBat, emoji, burst: ring, flyWitch, PUMPKIN_SVG, HAND_SVG };
 })();
 
 function formatClock(ms) {
