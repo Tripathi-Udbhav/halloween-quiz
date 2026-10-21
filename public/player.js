@@ -55,26 +55,29 @@ function playLaugh() {
 $('join-form').addEventListener('submit', (e) => {
   e.preventDefault();
   const name = $('name').value.trim();
-  if (!name) return;
+  const email = $('email').value.trim();
+  const fail = (msg, field) => {
+    $('join-error').textContent = msg;
+    field.classList.add('bad');
+    field.focus();
+  };
+  $('name').classList.remove('bad');
+  $('email').classList.remove('bad');
+  if (!name) return fail('Please enter your name', $('name'));
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return fail('Please enter a valid email address', $('email'));
   $('join-btn').disabled = true;
   $('join-error').textContent = '';
   const r = $('join-btn').getBoundingClientRect();
   Scene.spawn(r.left + r.width / 2, r.top + r.height / 2, { n: 30, speed: 5 });
 
-  const joined = new Promise((resolve) => socket.emit('player:join', { name }, resolve));
-  const laugh = playLaugh();
-  joined.then((res) => {
+  socket.emit('player:join', { name, email }, (res) => {
     $('join-btn').disabled = false;
-    if (res.error) {
-      $('laugh').classList.remove('show');
-      $('join-error').textContent = res.error;
-      return;
-    }
+    if (res.error) return fail(res.error, /email/i.test(res.error) ? $('email') : $('name'));
     // remember the token immediately so a refresh during the laugh still rejoins
     setToken(res.state.token);
     me = res.state;
     res.state.receivedAt = Date.now();
-    laugh.then(() => {
+    playLaugh().then(() => {
       applyState(res.state);
       if (pendingStart) {
         const p = pendingStart;

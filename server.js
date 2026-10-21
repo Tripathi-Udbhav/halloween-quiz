@@ -10,6 +10,12 @@ const { Server } = require('socket.io');
 const QUIZ_SECONDS = Number(process.env.QUIZ_SECONDS) || 120; // whole-quiz timer
 const MAX_QUESTIONS = 5;
 const HOST_KEY = process.env.HOST_KEY || ''; // optional: protect /host with ?key=...
+// optional: only allow emails from these domains, e.g. "henkel.com,partner.com"
+const ALLOWED_EMAIL_DOMAINS = (process.env.ALLOWED_EMAIL_DOMAINS || '')
+  .split(',')
+  .map((d) => d.trim().toLowerCase().replace(/^@/, ''))
+  .filter(Boolean);
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PORT = process.env.PORT || 3000;
 
 const app = express();
@@ -32,6 +38,19 @@ const players = new Map(); // token -> player
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('/host', (req, res) => res.sendFile(path.join(__dirname, 'public', 'host.html')));
+
+// Results with emails, for contacting winners. Host only (needs ?key= when HOST_KEY is set).
+app.get('/api/results.csv', (req, res) => {
+  if (HOST_KEY && req.query.key !== HOST_KEY) return res.status(403).send('Host key required');
+  const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const rows = phase === 'ended'
+    ? results.map((r) => [r.rank, r.name, players.get(r.token)?.email, r.correct, questions.length, (r.timeMs / 1000).toFixed(1)])
+    : [...players.values()].map((p) => ['', p.name, p.email, '', '', '']);
+  const csv = [['rank', 'name', 'email', 'correct', 'total', 'time_seconds'], ...rows].map((r) => r.map(cell).join(',')).join('\r\n');
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="haunted-quiz-results.csv"');
+  res.send('\ufeff' + csv);
+});
 
 app.get('/api/qr', async (req, res) => {
   const proto = (req.headers['x-forwarded-proto'] || req.protocol).split(',')[0];
@@ -208,20 +227,31 @@ io.on('connection', (socket) => {
   });
 
   // ---- Players ----
-  socket.on('player:join', ({ token, name } = {}, ack) => {
+  socket.on('player:join', ({ token, name, email } = {}, ack) => {
     let p = token && players.get(token);
     if (!p) {
       name = String(name || '').trim().slice(0, 24);
+      email = String(email || '').trim().toLowerCase().slice(0, 120);
       if (!name) return ack && ack({ error: 'Please enter your name' });
-      p = {
-        token: crypto.randomUUID(),
-        name,
-        answers: [],
-        correct: 0,
-        finished: false,
-        finishMs: null,
-      };
-      players.set(p.token, p);
+      if (!EMAIL_RE.test(email)) return ack && ack({ error: 'Please enter a valid email address' });
+      const domain = email.split('@')[1];
+      if (ALLOWED_EMAIL_DOMAINS.length && !ALLOWED_EMAIL_DOMAINS.some((d) => domain === d || domain.endsWith('.' + d))) {
+        return ack && ack({ error: `Please use your ${ALLOWED_EMAIL_DOMAINS.map((d) => '@' + d).join(' or ')} email` });
+      }
+      // one entry per email: joining again (new phone, cleared browser) reconnects to the same player
+      p = [...players.values()].find((x) => x.email === email);
+      if (!p) {
+        p = {
+          token: crypto.randomUUID(),
+          name,
+          email,
+          answers: [],
+          correct: 0,
+          finished: false,
+          finishMs: null,
+        };
+        players.set(p.token, p);
+      }
     }
     p.socketId = socket.id;
     socket.data.token = p.token;

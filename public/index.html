@@ -15,8 +15,9 @@
       <div class="big-emoji bob">🎃</div>
       <h1 class="drip" style="font-size:48px;line-height:1">Haunted Potting Quiz</h1>
       <p class="muted">Enter your name… if you dare.</p>
-      <form id="join-form" autocomplete="off">
+      <form id="join-form" autocomplete="off" novalidate>
         <input type="text" id="name" maxlength="24" placeholder="Your name" required>
+        <input type="email" id="email" maxlength="120" placeholder="Your email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" required>
         <button class="btn full" type="submit" id="join-btn">Enter the Crypt</button>
         <p class="error" id="join-error"></p>
       </form>
@@ -33,7 +34,7 @@
       <div><span class="souls-num" id="lobby-count">0</span></div>
       <div class="muted" style="font-weight:800;margin-top:-4px">souls have gathered</div>
       <p class="muted" style="font-size:14px">⏳ <b id="lobby-time">2 minutes</b> for all questions. Most correct wins — ties go to the fastest.</p>
-      <p class="hint">While you wait: tap <b>Frankenstein</b>, the <b>mummy</b>, the <b>zombies</b>, the <b>witch</b>, the <b>bats</b> and the <b>pumpkins</b>… if you dare.</p>
+      <p class="hint">While you wait: tap <b>Frankenstein</b>, the <b>mummy</b>, the <b>zombie</b>, the <b>witch</b>, the <b>haunted house</b>, the <b>bats</b> and the <b>pumpkins</b>… if you dare.</p>
     </div>
   </section>
 

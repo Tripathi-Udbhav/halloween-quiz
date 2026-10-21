@@ -50,6 +50,40 @@ const Scene = (() => {
     </g>
   </svg>`;
 
+  // the haunted house the witch lives in; the round attic window at (150,128) is her door
+  const HOUSE_SVG = `
+  <svg viewBox="0 0 300 340" aria-hidden="true">
+    <defs>
+      <radialGradient id="hwin"><stop offset="0" stop-color="#fff2b0"/><stop offset=".55" stop-color="#ffb347"/><stop offset="1" stop-color="#e0560a"/></radialGradient>
+      <linearGradient id="hwall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c0b2b"/><stop offset="1" stop-color="#0a0410"/></linearGradient>
+    </defs>
+    <g fill="url(#hwall)" stroke="rgba(170,110,255,.45)" stroke-width="2" stroke-linejoin="round">
+      <rect x="196" y="74" width="20" height="70"/>
+      <path d="M190 74 h32 v8 h-32 Z"/>
+      <path d="M72 340 L66 176 L236 168 L230 340 Z"/>
+      <path d="M48 182 L150 66 L254 174 Z"/>
+      <path d="M28 340 L32 112 L80 110 L84 340 Z"/>
+      <path d="M20 118 L58 6 L92 116 Z"/>
+    </g>
+    <path d="M70 160 L150 76 M90 150 L160 90 M200 150 L150 96 M230 166 L170 110" stroke="rgba(170,110,255,.25)" stroke-width="1.5"/>
+    <g class="hwin">
+      <path d="M46 186 v-22 a12 12 0 0 1 24 0 v22 Z" fill="url(#hwin)"/>
+      <rect x="96" y="200" width="32" height="40" fill="url(#hwin)"/>
+      <rect x="176" y="198" width="32" height="40" fill="url(#hwin)"/>
+      <rect x="176" y="266" width="32" height="34" fill="url(#hwin)" opacity=".85"/>
+      <path d="M130 340 v-50 a20 20 0 0 1 40 0 v50 Z" fill="url(#hwin)" opacity=".55"/>
+    </g>
+    <g stroke="#0a0410" stroke-width="3">
+      <path d="M112 200 v40 M96 220 h32 M192 198 v40 M176 218 h32 M192 266 v34 M58 164 v22"/>
+    </g>
+    <path d="M94 196 l-12 4 l2 44 l12 -4 Z" fill="#0f0618" transform="rotate(-8 88 220)"/>
+    <circle class="attic-glow" cx="150" cy="128" r="22" fill="url(#hwin)"/>
+    <circle cx="150" cy="128" r="22" fill="none" stroke="#0a0410" stroke-width="4"/>
+    <g class="shutter sl" style="transform-origin:128px 128px"><path d="M128 106 h22 v44 h-22 Z" fill="#160822" stroke="rgba(170,110,255,.5)" stroke-width="1.5"/><path d="M132 114 h14 M132 124 h14 M132 134 h14 M132 144 h14" stroke="rgba(170,110,255,.3)"/></g>
+    <g class="shutter sr" style="transform-origin:172px 128px"><path d="M150 106 h22 v44 h-22 Z" fill="#160822" stroke="rgba(170,110,255,.5)" stroke-width="1.5"/><path d="M154 114 h14 M154 124 h14 M154 134 h14 M154 144 h14" stroke="rgba(170,110,255,.3)"/></g>
+    <path d="M120 340 h60 l-6 -8 h-48 Z" fill="#0a0410"/>
+  </svg>`;
+
   // the silhouetted graveyard along the bottom of the screen
   function graveyardSVG() {
     const stone = (x, h, w, tilt, rip) => `
@@ -94,27 +128,36 @@ const Scene = (() => {
     <div class="moon"><div class="crater c1"></div><div class="crater c2"></div><div class="crater c3"></div></div>
     <div class="clouds"><i></i><i></i><i></i></div>
     <div class="bats"></div>
-    <div class="witch-wrap"><div class="witch" title="Tap me!">${charImg('witch')}</div></div>
     <div class="graveyard">${graveyardSVG()}</div>
-    <div class="ground-layer">
-      <div class="hands"></div>
-      <button class="pumpkin p-a" aria-label="pumpkin">${PUMPKIN_SVG}</button>
-      <button class="pumpkin p-b" aria-label="pumpkin">${PUMPKIN_SVG}</button>
-      <div class="walker zombie z1">${charImg('zombie')}</div>
-      <div class="walker zombie z2">${charImg('zombie', 'far')}</div>
-      <div class="walker mummy">${charImg('mummy')}</div>
-      <div class="walker frank">${charImg('frank')}</div>
-    </div>
+    <button class="house" aria-label="haunted house">${HOUSE_SVG}</button>
+    <div class="witch-wrap"><div class="witch" title="Tap me!">${charImg('witch')}</div></div>
     <div class="fog"><i></i><i></i></div>
     <div class="vignette"></div>
     <div class="lightning"><svg viewBox="0 0 100 300" preserveAspectRatio="none"><path d=""/></svg></div>`;
   document.body.prepend(root);
 
-  // the mummy lunges out of the screen at whoever taps it
-  const lunge = document.createElement('div');
-  lunge.className = 'mummy-lunge';
-  lunge.innerHTML = '<div class="backdrop"></div>' + charImg('mummy');
-  document.body.appendChild(lunge);
+  // the characters live in their own layer, so on the waiting screens they can walk in front of the cards
+  const ground = document.createElement('div');
+  ground.className = 'ground-layer';
+  ground.innerHTML = `
+    <div class="hands"></div>
+    <button class="pumpkin p-a" aria-label="pumpkin">${PUMPKIN_SVG}</button>
+    <button class="pumpkin p-b" aria-label="pumpkin">${PUMPKIN_SVG}</button>
+    <div class="walker zombie">${charImg('zombie')}</div>
+    <div class="walker mummy">${charImg('mummy')}</div>
+    <div class="walker frank">${charImg('frank')}</div>`;
+  document.body.appendChild(ground);
+
+  // full-screen stage: the mummy lunges out at you, the zombie dances under disco lights
+  const stage = document.createElement('div');
+  stage.className = 'big-stage';
+  stage.innerHTML = `<div class="backdrop"></div><div class="disco-lights">${'<i></i>'.repeat(6)}</div><div class="mover"><img class="char-img" alt="" draggable="false"></div>`;
+  document.body.appendChild(stage);
+
+  // Frankenstein's lightning bolts are drawn here
+  const boltLayer = document.createElementNS(svgNS, 'svg');
+  boltLayer.setAttribute('class', 'bolt-layer');
+  document.body.appendChild(boltLayer);
 
   const fx = document.createElement('canvas');
   fx.className = 'fx';
@@ -276,79 +319,179 @@ const Scene = (() => {
 
   // ---------- tap effects, one per character ----------
   const effects = {
-    // Frankenstein gets a jolt of electricity
+    // Frankenstein hurls lightning bolts at whoever tapped him
     frank(w, r) {
       restartClass(w.el, 'zap', 1500);
-      lightning();
-      const cx = r.left + r.width / 2;
-      const cy = r.top + r.height * 0.28;
-      spawn(cx, cy, { n: 50, colors: ['#ffffff', '#d9f6ff', '#fff36b', '#8cff5a'], speed: 7, gravity: 0.02 });
-      ring(cx, cy, '#d9f6ff', 220);
-      setTimeout(() => ring(cx, cy, '#8cff5a', 300), 180);
-      return 1500;
+      throwBolts(w, r);
+      return 1800;
     },
-    // zombies topple over in a splash of slime, then get back up
+    // the zombie busts out dance moves, big on screen, under disco lights
     zombie(w, r) {
-      restartClass(w.el, 'topple', 1900);
-      setTimeout(() => {
-        spawn(r.left + r.width / 2, r.bottom - 20, { n: 40, colors: ['#8cff5a', '#5fbf2a', '#c7ff8a', '#3d7a12'], speed: 5, gravity: 0.18 });
-        shake();
-      }, 450);
-      return 1900;
+      bigShow(w, r, { name: 'zombie', aspect: 623 / 760, mode: 'disco', duration: 4200 });
+      return 4200;
     },
     // the mummy grows huge and lunges out of the screen
     mummy(w, r) {
-      mummyLunge(w, r);
+      bigShow(w, r, { name: 'mummy', aspect: 903 / 1100, mode: 'lunge', duration: 3000 });
       return 3000;
     },
   };
 
-  let lunging = false;
-  function mummyLunge(w, r) {
-    if (lunging) return;
-    lunging = true;
-    const img = lunge.querySelector('img');
+  let onStage = false;
+  function bigShow(w, r, { name, aspect, mode: kind, duration }) {
+    if (onStage) return;
+    onStage = true;
+    const mover = stage.querySelector('.mover');
+    const img = mover.querySelector('img');
+    img.src = `img/${name}.webp`;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const aspect = 903 / 1100;
     // big enough to burst past the edges on a phone
-    const th = Math.min(vh * 0.95, (vw * 1.5) / aspect);
+    const th = Math.min(vh * (kind === 'disco' ? 0.86 : 0.95), (vw * (kind === 'disco' ? 1.15 : 1.5)) / aspect);
     const tw = th * aspect;
-    img.style.width = tw + 'px';
+    mover.style.width = tw + 'px';
     const s0 = r.width / tw;
     const tx1 = (vw - tw) / 2;
     const ty1 = (vh - th) / 2;
-    const at = (x, y, sc, rot = 0) => `translate(${x}px, ${y}px) scale(${sc}) rotate(${rot}deg)`;
+    // match the walker's facing so it grows out of the same pose
+    const flip = w.dir > 0 ? -1 : 1;
+    const at = (x, y, sc, rot = 0) => `translate(${x}px, ${y}px) scale(${sc * flip}, ${sc}) rotate(${rot}deg)`;
     w.el.style.opacity = '0';
-    lunge.classList.add('show');
-    const anim = img.animate([
-      { transform: at(r.left, r.top, s0), offset: 0, easing: 'cubic-bezier(.2,.9,.3,1.1)' },
-      { transform: at(tx1, ty1 + th * 0.04, 1.12, -3), offset: 0.22 },
-      { transform: at(tx1, ty1, 1.0, 2), offset: 0.3 },
-      { transform: at(tx1, ty1 - 8, 1.04, -2), offset: 0.45 },
-      { transform: at(tx1, ty1, 1.0, 2), offset: 0.6 },
-      { transform: at(tx1, ty1, 1.03, -1), offset: 0.74, easing: 'cubic-bezier(.6,0,.8,.4)' },
-      { transform: at(r.left, r.top, s0), offset: 1 },
-    ], { duration: 3000 });
-    setTimeout(() => {
-      shake();
-      // strips of old bandage flying everywhere
-      spawn(vw / 2, vh * 0.45, { n: 70, colors: ['#e8d7a8', '#c9b07a', '#f4ecdf', '#8a6a3a'], speed: 9, gravity: 0.12 });
-      ring(vw / 2, vh / 2, '#ffd27a', 600);
-    }, 650);
-    setTimeout(() => lunge.classList.remove('show'), 2300);
+    stage.className = 'big-stage show ' + kind;
+    const frames = kind === 'disco'
+      ? [
+          { transform: at(r.left, r.top, s0), offset: 0, easing: 'cubic-bezier(.2,.9,.3,1.1)' },
+          { transform: at(tx1, ty1, 1), offset: 0.14 },
+          { transform: at(tx1, ty1, 1), offset: 0.84, easing: 'cubic-bezier(.6,0,.8,.4)' },
+          { transform: at(r.left, r.top, s0), offset: 1 },
+        ]
+      : [
+          { transform: at(r.left, r.top, s0), offset: 0, easing: 'cubic-bezier(.2,.9,.3,1.1)' },
+          { transform: at(tx1, ty1 + th * 0.04, 1.12, -3), offset: 0.22 },
+          { transform: at(tx1, ty1, 1.0, 2), offset: 0.3 },
+          { transform: at(tx1, ty1 - 8, 1.04, -2), offset: 0.45 },
+          { transform: at(tx1, ty1, 1.0, 2), offset: 0.6 },
+          { transform: at(tx1, ty1, 1.03, -1), offset: 0.74, easing: 'cubic-bezier(.6,0,.8,.4)' },
+          { transform: at(r.left, r.top, s0), offset: 1 },
+        ];
+    const anim = mover.animate(frames, { duration });
+    if (kind === 'disco') {
+      // confetti-coloured sparkles while it dances
+      const party = setInterval(() => {
+        spawn(Math.random() * vw, Math.random() * vh * 0.7, { n: 8, colors: ['#ff2e9a', '#2ee6ff', '#ffe066', '#8cff5a', '#b46bff'], speed: 3, gravity: 0.03 });
+      }, 120);
+      setTimeout(() => clearInterval(party), duration * 0.8);
+    } else {
+      setTimeout(() => {
+        shake();
+        // strips of old bandage flying everywhere
+        spawn(vw / 2, vh * 0.45, { n: 70, colors: ['#e8d7a8', '#c9b07a', '#f4ecdf', '#8a6a3a'], speed: 9, gravity: 0.12 });
+        ring(vw / 2, vh / 2, '#ffd27a', 600);
+      }, 650);
+    }
+    setTimeout(() => stage.classList.remove('show'), duration * 0.78);
     anim.onfinish = () => {
-      lunging = false;
+      onStage = false;
+      stage.className = 'big-stage';
       w.el.style.opacity = '';
     };
   }
 
-  // ---------- walkers: Frankenstein, the mummy and zombies ----------
+  // a jagged bolt from (x0,y0) to (x1,y1), with a couple of forks
+  function jaggedBolt(x0, y0, x1, y1, jag) {
+    const n = 10;
+    const pts = [[x0, y0]];
+    const len = Math.hypot(x1 - x0, y1 - y0);
+    const nx = -(y1 - y0) / len;
+    const ny = (x1 - x0) / len;
+    for (let k = 1; k < n; k++) {
+      const f = k / n;
+      const off = (Math.random() - 0.5) * jag * Math.sin(f * Math.PI) * 2;
+      pts.push([x0 + (x1 - x0) * f + nx * off, y0 + (y1 - y0) * f + ny * off]);
+    }
+    pts.push([x1, y1]);
+    let d = 'M' + pts.map((p) => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' L');
+    for (const k of [3, 6]) {
+      const [bx, by] = pts[k];
+      const ang = Math.atan2(y1 - y0, x1 - x0) + (Math.random() < 0.5 ? -0.7 : 0.7);
+      const bl = len * 0.18;
+      d += ` M${bx.toFixed(1)} ${by.toFixed(1)} L${(bx + Math.cos(ang) * bl * 0.5 + (Math.random() - 0.5) * 20).toFixed(1)} ${(by + Math.sin(ang) * bl * 0.5).toFixed(1)} L${(bx + Math.cos(ang) * bl).toFixed(1)} ${(by + Math.sin(ang) * bl).toFixed(1)}`;
+    }
+    return d;
+  }
+
+  // cracks in the "glass" where a bolt hits the screen
+  function crackPath(x, y) {
+    let d = '';
+    const spokes = 7 + Math.floor(Math.random() * 4);
+    for (let k = 0; k < spokes; k++) {
+      const a = (k / spokes) * Math.PI * 2 + Math.random() * 0.4;
+      const L = 50 + Math.random() * 90;
+      let px = x, py = y;
+      d += `M${x} ${y}`;
+      for (let seg = 1; seg <= 3; seg++) {
+        const aa = a + (Math.random() - 0.5) * 0.5;
+        px += Math.cos(aa) * (L / 3);
+        py += Math.sin(aa) * (L / 3);
+        d += ` L${px.toFixed(1)} ${py.toFixed(1)}`;
+      }
+    }
+    // a ring of shards around the impact
+    for (let k = 0; k < spokes; k++) {
+      const a0 = (k / spokes) * Math.PI * 2;
+      const a1 = ((k + 1) / spokes) * Math.PI * 2;
+      const rr = 26 + Math.random() * 14;
+      d += ` M${(x + Math.cos(a0) * rr).toFixed(1)} ${(y + Math.sin(a0) * rr).toFixed(1)} L${(x + Math.cos(a1) * rr).toFixed(1)} ${(y + Math.sin(a1) * rr).toFixed(1)}`;
+    }
+    return d;
+  }
+
+  function throwBolts(w, r) {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    boltLayer.setAttribute('viewBox', `0 0 ${vw} ${vh}`);
+    // bolts leave from his outstretched hand
+    const facesLeft = w.dir < 0;
+    const hx = facesLeft ? r.left + r.width * 0.12 : r.right - r.width * 0.12;
+    const hy = r.top + r.height * 0.45;
+    const targets = [
+      [vw * 0.5, vh * 0.38],
+      [vw * (0.15 + Math.random() * 0.2), vh * (0.15 + Math.random() * 0.2)],
+      [vw * (0.65 + Math.random() * 0.2), vh * (0.2 + Math.random() * 0.25)],
+      [vw * (0.3 + Math.random() * 0.4), vh * (0.55 + Math.random() * 0.1)],
+    ];
+    targets.forEach(([tx, ty], k) => {
+      setTimeout(() => {
+        // a wide blue glow with a hot white core
+        const d = jaggedBolt(hx, hy, tx, ty, Math.hypot(tx - hx, ty - hy) * 0.12);
+        const bolt = document.createElementNS(svgNS, 'g');
+        bolt.setAttribute('class', 'bolt');
+        for (const cls of ['bolt-glow', 'bolt-core']) {
+          const path = document.createElementNS(svgNS, 'path');
+          path.setAttribute('d', d);
+          path.setAttribute('class', cls);
+          bolt.appendChild(path);
+        }
+        boltLayer.appendChild(bolt);
+        const crack = document.createElementNS(svgNS, 'path');
+        crack.setAttribute('d', crackPath(tx, ty));
+        crack.setAttribute('class', 'crack');
+        boltLayer.appendChild(crack);
+        spawn(tx, ty, { n: 36, colors: ['#ffffff', '#d9f6ff', '#9ad8ff', '#fff36b'], speed: 7, gravity: 0.05 });
+        ring(tx, ty, '#d9f6ff', 200);
+        if (k === 0) { lightning(); shake(); }
+        setTimeout(() => bolt.remove(), 1150);
+        setTimeout(() => crack.remove(), 1800);
+      }, k * 160);
+    });
+    spawn(hx, hy, { n: 30, colors: ['#ffffff', '#d9f6ff', '#fff36b'], speed: 5 });
+  }
+
+  // ---------- walkers: Frankenstein, the mummy and the zombie ----------
   const walkers = [
-    { el: root.querySelector('.frank'), kind: 'frank', speed: 26, x: 0.2, dir: 1, only: ['lobby', 'results'] },
-    { el: root.querySelector('.mummy'), kind: 'mummy', speed: 18, x: 0.05, dir: 1, only: ['join', 'lobby', 'done', 'results'] },
-    { el: root.querySelector('.z1'), kind: 'zombie', speed: 14, x: 0.75, dir: -1, only: ['join', 'lobby', 'done', 'results'] },
-    { el: root.querySelector('.z2'), kind: 'zombie', speed: 11, x: 0.45, dir: 1, only: ['join', 'lobby', 'done', 'results'] },
+    { el: ground.querySelector('.frank'), kind: 'frank', speed: 26, x: 0.2, dir: 1, only: ['lobby', 'results'] },
+    { el: ground.querySelector('.mummy'), kind: 'mummy', speed: 18, x: 0.05, dir: 1, only: ['join', 'lobby', 'done', 'results'] },
+    { el: ground.querySelector('.zombie'), kind: 'zombie', speed: 14, x: 0.75, dir: -1, only: ['join', 'lobby', 'done', 'results'] },
   ];
   walkers.forEach((w) => {
     w.px = w.x * window.innerWidth;
@@ -368,10 +511,9 @@ const Scene = (() => {
       const width = w.el.offsetWidth || 120;
       if (mode === 'results') {
         // stop and dance at fixed spots
-        const spots = { frank: 0.02, mummy: 0.15, z1: 0.86, z2: 0.73 };
-        const key = w.el.classList.contains('z1') ? 'z1' : w.el.classList.contains('z2') ? 'z2' : w.kind;
-        w.px += (spots[key] * vw - w.px) * 0.05;
-        w.dir = spots[key] < 0.5 ? 1 : -1;
+        const spots = { frank: 0.02, mummy: 0.16, zombie: 0.84 };
+        w.px += (spots[w.kind] * vw - w.px) * 0.05;
+        w.dir = spots[w.kind] < 0.5 ? 1 : -1;
       } else if (w.paused > 0) {
         w.paused -= dt;
       } else {
@@ -432,26 +574,62 @@ const Scene = (() => {
   let witchFlying = false;
   let witchLtr = true;
 
+  const house = root.querySelector('.house');
+  // where the attic window is on screen right now
+  function atticWindow() {
+    const r = house.getBoundingClientRect();
+    if (!r.width) return null;
+    const k = r.width / 300;
+    return { x: r.left + 150 * k, y: r.top + 128 * k };
+  }
+
   function flyWitch() {
     if (witchFlying || mode === 'quiz') return;
+    const win = atticWindow();
+    if (!win) return;
     witchFlying = true;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const ltr = Math.random() < 0.5;
-    witchLtr = ltr;
-    const w = witchWrap.offsetWidth || 200;
-    const y0 = vh * (0.08 + Math.random() * 0.22);
-    const sx = ltr ? 1 : -1;
-    const x0 = ltr ? -w - 20 : vw + 20;
-    const x1 = ltr ? vw + 20 : -w - 20;
-    const kf = [];
-    for (let i = 0; i <= 10; i++) {
-      const f = i / 10;
-      kf.push({ transform: `translate(${x0 + (x1 - x0) * f}px, ${y0 + Math.sin(f * Math.PI * 2) * 40 - Math.sin(f * Math.PI) * 50}px) scaleX(${sx})` });
-    }
-    const anim = witchWrap.animate(kf, { duration: isHost ? 9000 : 7000, easing: 'linear' });
-    anim.onfinish = () => { witchFlying = false; witchWrap.style.transform = 'translate(-9999px,0)'; };
+    const ww = witchWrap.offsetWidth || 200;
+    const wh = ww * (863 / 960);
+    const dur = isHost ? 11000 : 9000;
+    // the artwork faces right; she leaves the house flying left, turns, and comes home
+    const at = (x, y, sc, face, rot = 0) => ({ transform: `translate(${x - ww / 2}px, ${y - wh / 2}px) scale(${sc * face}, ${sc}) rotate(${rot}deg)` });
+    const kf = [
+      { ...at(win.x, win.y, 0.08, -1), opacity: 0, offset: 0 },
+      { ...at(win.x - vw * 0.08, win.y - vh * 0.12, 0.45, -1, -8), opacity: 1, offset: 0.08 },
+      { ...at(vw * 0.55, vh * 0.14, 1, -1, 4), opacity: 1, offset: 0.3 },
+      { ...at(vw * 0.14, vh * 0.24, 1, -1, -4), opacity: 1, offset: 0.5 },
+      { ...at(vw * 0.14, vh * 0.24, 1, 1, 4), opacity: 1, offset: 0.53 },
+      { ...at(vw * 0.48, vh * 0.32, 1, 1, -3), opacity: 1, offset: 0.74 },
+      { ...at(win.x - vw * 0.06, win.y - vh * 0.1, 0.45, 1, 6), opacity: 1, offset: 0.92 },
+      { ...at(win.x, win.y, 0.06, 1), opacity: 0, offset: 1 },
+    ];
+    house.classList.add('open');
+    witchLtr = false;
+    setTimeout(() => {
+      const anim = witchWrap.animate(kf, { duration: dur, easing: 'linear' });
+      setTimeout(() => (witchLtr = true), dur * 0.52);
+      setTimeout(() => house.classList.add('flash'), dur * 0.97);
+      anim.onfinish = () => {
+        witchFlying = false;
+        witchWrap.style.transform = 'translate(-9999px,0)';
+        setTimeout(() => house.classList.remove('open', 'flash'), 500);
+      };
+    }, 600);
   }
+
+  // tapping the house: the lights flicker and bats pour out of the windows
+  house.addEventListener('pointerdown', (e) => {
+    e.stopPropagation();
+    restartClass(house, 'spooked', 1200);
+    const win = atticWindow();
+    if (!win) return;
+    for (let k = 0; k < 10; k++) setTimeout(() => spawnBat(win.x, win.y), k * 70);
+    spawn(win.x, win.y, { n: 30, colors: ['#ffb347', '#fff2b0', '#b46bff'], speed: 4 });
+    ring(win.x, win.y, '#ffb347', 160);
+  });
+
   function scheduleWitch() {
     setTimeout(() => { flyWitch(); scheduleWitch(); }, 9000 + Math.random() * 12000);
   }
@@ -476,7 +654,7 @@ const Scene = (() => {
   }
 
   // ---------- zombie hands rising from graves ----------
-  const handBox = root.querySelector('.hands');
+  const handBox = ground.querySelector('.hands');
   function riseHand() {
     if (document.hidden) return;
     const el = document.createElement('div');
@@ -496,7 +674,7 @@ const Scene = (() => {
   setTimeout(riseHand, 800);
 
   // ---------- pumpkins ----------
-  root.querySelectorAll('.pumpkin').forEach((p) => {
+  ground.querySelectorAll('.pumpkin').forEach((p) => {
     p.addEventListener('pointerdown', (e) => {
       e.stopPropagation();
       restartClass(p, 'flare', 800);

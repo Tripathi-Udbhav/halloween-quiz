@@ -242,6 +242,7 @@ $('end-btn').onclick = () => confirm('End the quiz for everyone now?') && socket
 $('reset-btn').onclick = () => socket.emit('host:reset');
 $('replay-btn').onclick = () => reveal(lastResults);
 $('answers-btn').onclick = () => showReview(0);
+$('csv-btn').href = '/api/results.csv' + (key ? '?key=' + encodeURIComponent(key) : '');
 $('rv-next').onclick = reviewNext;
 $('rv-prev').onclick = () => showReview(rvIndex - 1);
 $('rv-back').onclick = () => show('h-results');
