@@ -36,6 +36,15 @@ let timer = null;
 let results = [];
 const players = new Map(); // token -> player
 
+// Always use the secure https address when hosted (Render puts the original protocol in x-forwarded-proto)
+app.set('trust proxy', true);
+app.use((req, res, next) => {
+  const proto = String(req.headers['x-forwarded-proto'] || '').split(',')[0];
+  if (proto === 'http') return res.redirect(301, `https://${req.get('host')}${req.originalUrl}`);
+  if (proto === 'https') res.setHeader('Strict-Transport-Security', 'max-age=31536000');
+  next();
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('/host', (req, res) => res.sendFile(path.join(__dirname, 'public', 'host.html')));
 
@@ -54,7 +63,8 @@ app.get('/api/results.csv', (req, res) => {
 
 app.get('/api/qr', async (req, res) => {
   const proto = (req.headers['x-forwarded-proto'] || req.protocol).split(',')[0];
-  const url = process.env.PUBLIC_URL || `${proto}://${req.get('host')}/`;
+  // on Render, RENDER_EXTERNAL_URL is the public https link, so the QR code never points at http://
+  const url = process.env.PUBLIC_URL || (process.env.RENDER_EXTERNAL_URL ? process.env.RENDER_EXTERNAL_URL.replace(/\/?$/, '/') : `${proto}://${req.get('host')}/`);
   const svg = await QRCode.toString(url, {
     type: 'svg',
     margin: 1,
