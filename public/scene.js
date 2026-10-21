@@ -130,7 +130,6 @@ const Scene = (() => {
     <div class="bats"></div>
     <div class="graveyard">${graveyardSVG()}</div>
     <button class="house" aria-label="haunted house">${HOUSE_SVG}</button>
-    <div class="witch-wrap"><div class="witch" title="Tap me!">${charImg('witch')}</div></div>
     <div class="fog"><i></i><i></i></div>
     <div class="vignette"></div>
     <div class="lightning"><svg viewBox="0 0 100 300" preserveAspectRatio="none"><path d=""/></svg></div>`;
@@ -147,6 +146,12 @@ const Scene = (() => {
     <div class="walker mummy">${charImg('mummy')}</div>
     <div class="walker frank">${charImg('frank')}</div>`;
   document.body.appendChild(ground);
+
+  // the witch flies in a layer above the cards on the phones' waiting screens
+  const skyLayer = document.createElement('div');
+  skyLayer.className = 'sky-layer';
+  skyLayer.innerHTML = `<div class="witch-wrap"><div class="witch" title="Tap me!">${charImg('witch')}</div></div>`;
+  document.body.appendChild(skyLayer);
 
   // full-screen stage: the mummy lunges out at you, the zombie dances under disco lights
   const stage = document.createElement('div');
@@ -504,11 +509,19 @@ const Scene = (() => {
 
   function updateWalkers(dt) {
     const vw = window.innerWidth;
+    // each visible character gets its own lane (mummy left, Frankenstein middle, zombie right)
+    // and paces back and forth inside it, so they never pile on top of each other
+    const lanes = ['mummy', 'frank', 'zombie'].filter((k) => walkers.find((w) => w.kind === k).only.includes(mode));
     for (const w of walkers) {
       const visible = w.only.includes(mode);
       w.el.classList.toggle('gone', !visible);
       if (!visible) continue;
       const width = w.el.offsetWidth || 120;
+      const lane = lanes.indexOf(w.kind);
+      const laneW = vw / lanes.length;
+      const lo = lane * laneW - width * 0.1;
+      const hi = Math.max(lo, (lane + 1) * laneW - width * 0.9);
+      if (mode !== 'results' && (w.px < lo - 4 || w.px > hi + 4)) w.px += ((lo + hi) / 2 - w.px) * 0.06;
       if (mode === 'results') {
         // stop and dance at fixed spots
         const spots = { frank: 0.02, mummy: 0.16, zombie: 0.84 };
@@ -518,8 +531,8 @@ const Scene = (() => {
         w.paused -= dt;
       } else {
         w.px += w.dir * w.speed * (dt / 1000) * (isHost ? 1.6 : 1);
-        if (w.px > vw - width * 0.6) w.dir = -1;
-        if (w.px < -width * 0.4) w.dir = 1;
+        if (w.px >= hi) w.dir = -1;
+        if (w.px <= lo) w.dir = 1;
       }
       // the artwork faces left, so mirror it when walking right
       w.el.style.transform = `translateX(${w.px}px) scaleX(${-w.dir})`;
@@ -569,8 +582,8 @@ const Scene = (() => {
   }
 
   // ---------- witch on a broomstick ----------
-  const witchWrap = root.querySelector('.witch-wrap');
-  const witch = root.querySelector('.witch');
+  const witchWrap = skyLayer.querySelector('.witch-wrap');
+  const witch = skyLayer.querySelector('.witch');
   let witchFlying = false;
   let witchLtr = true;
 

@@ -79,13 +79,16 @@ canvas.fx { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
 .graveyard svg { width: 100%; height: 100%; display: block; }
 
 .ground-layer { position: fixed; left: 0; right: 0; bottom: 0; height: 40vh; z-index: 6; pointer-events: none; }
+.sky-layer { position: fixed; inset: 0; z-index: 7; pointer-events: none; overflow: hidden; }
 /* in front of the cards while players wait; behind them where buttons or long content need the space */
-.host .ground-layer, body[data-scene=join] .ground-layer, body[data-scene=quiz] .ground-layer, body[data-scene=results]:not(.host) .ground-layer { z-index: 1; }
+.host .ground-layer, body[data-scene=join] .ground-layer, body[data-scene=quiz] .ground-layer, body[data-scene=results]:not(.host) .ground-layer,
+.host .sky-layer, body[data-scene=join] .sky-layer, body[data-scene=quiz] .sky-layer, body[data-scene=results]:not(.host) .sky-layer { z-index: 1; }
 .walker { position: absolute; left: 0; bottom: 1.2vh; pointer-events: auto; cursor: pointer; transition: opacity 0.8s; will-change: transform; }
 .walker.gone { opacity: 0; pointer-events: none; }
-.frank { width: clamp(110px, 19vh, 200px); }
-.zombie { width: clamp(100px, 17vh, 180px); }
-.mummy { width: clamp(100px, 17vh, 185px); }
+/* on phones each character must fit in a third of the screen */
+.frank { width: min(19vh, 31vw, 200px); }
+.zombie { width: min(17vh, 29vw, 180px); }
+.mummy { width: min(17vh, 29vw, 185px); }
 .host .mummy { width: clamp(150px, 26vh, 280px); }
 .host .frank { width: clamp(160px, 28vh, 300px); }
 .host .zombie { width: clamp(140px, 24vh, 260px); }
@@ -295,6 +298,7 @@ input.bad { border-color: var(--blood); box-shadow: 0 0 0 4px rgba(255, 46, 77, 
 .error { color: var(--blood); min-height: 1.4em; margin: 6px 0 0; font-weight: 700; }
 .hint { font-size: 13px; color: var(--muted); margin-top: 14px; }
 .hint b { color: var(--slime); }
+.scroll-hint { display: none; text-align: center; margin-top: 12px; color: var(--muted); font-weight: 800; font-size: 14px; animation: bob 1.6s ease-in-out infinite; }
 
 /* evil laugh moment */
 .laugh { position: fixed; inset: 0; z-index: 40; display: none; place-items: center; background: radial-gradient(circle at 50% 45%, rgba(40, 0, 20, 0.85), rgba(0, 0, 0, 0.97) 60%); }
@@ -513,6 +517,13 @@ body[data-scene=quiz] .screen.active { justify-content: flex-start; padding-top:
   .grave .zhand { display: none; }
 }
 @media (max-width: 600px) {
+  /* waiting screens: a compact card, and room to scroll it away and watch the graveyard */
+  body:not(.host)[data-scene=lobby] .screen.active, body:not(.host)[data-scene=done] .screen.active { justify-content: flex-start; padding-top: 24px; padding-bottom: 75vh; }
+  #s-lobby .card, #s-done .card { padding: 20px 18px; }
+  #s-lobby .big-emoji, #s-done .big-emoji { font-size: 46px; }
+  #s-lobby h2 { font-size: 32px !important; }
+  #s-lobby .souls-num { font-size: 44px; }
+  .scroll-hint { display: block; }
   .moon { width: 72px; top: 70px; right: 18px; transition: opacity 0.5s; }
   body[data-scene=quiz] .moon { opacity: 0; }
 }
