@@ -69,6 +69,33 @@ npm start
 
 Free services go to sleep after 15 minutes without visitors. **Open the `/host` page a couple of minutes before your session** so it's awake when people scan.
 
+## Backup: deploy on Microsoft Azure
+
+Use this if a network blocks `onrender.com`. Azure runs the same code from this GitHub repo.
+
+1. Sign in at https://portal.azure.com (a free account works; it needs a card for identity).
+2. **Create a resource → Web App**, then fill in:
+   - **Resource group:** create new, e.g. `halloween-quiz`
+   - **Name:** e.g. `haunted-potting-quiz` (becomes `haunted-potting-quiz.azurewebsites.net`; Azure may add a few extra characters)
+   - **Publish:** Code · **Runtime stack:** Node 22 LTS (or 20 LTS) · **Operating system:** Linux
+   - **Region:** one close to you, e.g. West Europe
+   - **Pricing plan:** **Basic B1**. Avoid Free F1: it allows very few live connections, so most phones could not join.
+   - **Deployment tab:** turn on continuous deployment and pick this GitHub repo and the `main` branch. Azure adds a GitHub Actions workflow file to the repo for you.
+3. **Review + create → Create.** The first deployment takes about 3–5 minutes (repo → **Actions** tab shows progress).
+4. In the new web app open **Settings → Configuration → General settings**:
+   - **Web sockets:** On
+   - **Always on:** On (so it does not fall asleep)
+   - **HTTPS Only:** On
+   - Save.
+5. **Settings → Environment variables:** add the same ones as on Render (`HOST_KEY`, and `QUIZ_SECONDS` / `ALLOWED_EMAIL_DOMAINS` if you use them). Apply.
+6. Open `https://<your-name>.azurewebsites.net/host?key=<your key>`. The QR code automatically points at the Azure address.
+
+Keep it at **one instance** (no scale-out): players and scores are kept in memory on one server.
+
+Render and Azure are separate copies with separate players. On the day, use **one** of them for everyone.
+
+**Cost:** B1 costs roughly 1–2 cents per hour. After the session, delete the resource group (**Resource groups → halloween-quiz → Delete**) so it stops costing anything.
+
 ## On the day
 
 1. Open `/host` on the projector. If the quiz was used before, press **Clear players**.

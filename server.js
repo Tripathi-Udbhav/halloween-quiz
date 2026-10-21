@@ -61,10 +61,18 @@ app.get('/api/results.csv', (req, res) => {
   res.send('\ufeff' + csv);
 });
 
+// Render sets RENDER_EXTERNAL_URL; Azure App Service sets WEBSITE_HOSTNAME
+function publicBase() {
+  if (process.env.PUBLIC_URL) return process.env.PUBLIC_URL.replace(/\/$/, '');
+  if (process.env.RENDER_EXTERNAL_URL) return process.env.RENDER_EXTERNAL_URL.replace(/\/$/, '');
+  if (process.env.WEBSITE_HOSTNAME) return `https://${process.env.WEBSITE_HOSTNAME}`;
+  return '';
+}
+
 app.get('/api/qr', async (req, res) => {
   const proto = (req.headers['x-forwarded-proto'] || req.protocol).split(',')[0];
-  // on Render, RENDER_EXTERNAL_URL is the public https link, so the QR code never points at http://
-  const url = process.env.PUBLIC_URL || (process.env.RENDER_EXTERNAL_URL ? process.env.RENDER_EXTERNAL_URL.replace(/\/?$/, '/') : `${proto}://${req.get('host')}/`);
+  // the public https link, so the QR code never points at http://
+  const url = publicBase() ? publicBase() + '/' : `${proto}://${req.get('host')}/`;
   const svg = await QRCode.toString(url, {
     type: 'svg',
     margin: 1,
@@ -298,8 +306,8 @@ io.on('connection', (socket) => {
 });
 
 server.listen(PORT, () => {
-  // On Render, RENDER_EXTERNAL_URL is the public link; localhost only works on this machine
-  const base = (process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`).replace(/\/$/, '');
+  // localhost only works on this machine; on Render or Azure print the public link
+  const base = publicBase() || `http://localhost:${PORT}`;
   console.log(`Halloween quiz running. Player link: ${base}/`);
   console.log(`Host screen: ${base}/host${HOST_KEY ? '?key=' + HOST_KEY : ''}`);
 });
